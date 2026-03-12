@@ -1,0 +1,45 @@
+interface ActionBarProps {
+  canGenerateNextRound: boolean
+  isCompleted: boolean
+  currentRound: number
+  totalRounds: number
+  onGenerateNextRound: () => void
+}
+
+export function ActionBar({
+  canGenerateNextRound,
+  isCompleted,
+  currentRound,
+  totalRounds,
+  onGenerateNextRound,
+}: ActionBarProps) {
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      {isCompleted ? (
+        <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm font-medium text-emerald-700">
+          Tournament complete. Final standings are locked after round {totalRounds}.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-serif text-2xl text-slate-900">Round actions</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {currentRound === 0
+                ? 'Start the tournament to generate round 1.'
+                : 'Generate the next round only after all current results are entered.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={!canGenerateNextRound}
+            onClick={onGenerateNextRound}
+            className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {currentRound >= totalRounds ? 'Final Round Complete' : 'Generate Next Round'}
+          </button>
+        </div>
+      )}
+    </section>
+  )
+}
