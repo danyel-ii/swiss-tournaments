@@ -2,8 +2,8 @@
 
 :root {
   color: #0f172a;
-  background: #f8fafc;
-  font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #dff0f5;
+  font-family: "Andika", "SFMono-Regular", "Consolas", monospace;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
@@ -26,4 +26,12 @@ textarea {
 
 #root {
   min-height: 100vh;
+}
+
+.font-display {
+  font-family: "Avenir Next Rounded", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+}
+
+.font-data {
+  font-family: "Andika", "SFMono-Regular", "Consolas", monospace;
 }

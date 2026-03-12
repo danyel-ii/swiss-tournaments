@@ -168,7 +168,7 @@ function compareStandingSort(
     return left.seed - right.seed
   }
 
-  return left.name.localeCompare(right.name)
+  return 0
 }
 
 export function getPlayerStats(
