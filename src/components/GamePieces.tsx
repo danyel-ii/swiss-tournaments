@@ -12,20 +12,15 @@ export function AvatarBadge({
   size?: 'sm' | 'md'
 }) {
   const avatar = getAvatarForSeed(seed)
-  const sizeClass = size === 'sm' ? 'h-9 w-9' : 'h-12 w-12'
-  const imageInsetClass = size === 'sm' ? 'inset-[3px]' : 'inset-[4px]'
+  const sizeClass = size === 'sm' ? 'h-9 w-9 text-sm' : 'h-12 w-12 text-base'
 
   return (
     <span
-      className={`relative inline-flex ${sizeClass} items-center justify-center rounded-full ${avatar.background} ring-2 ${avatar.ring} shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
+      className={`inline-flex ${sizeClass} items-center justify-center rounded-full ${avatar.background} ring-2 ${avatar.ring} ${avatar.text} font-display font-bold shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
       title={avatar.label}
       aria-label={avatar.label}
     >
-      <span
-        className={`absolute ${imageInsetClass} rounded-full bg-[url('/image.png')] bg-[length:300%_200%] bg-no-repeat`}
-        style={{ backgroundPosition: avatar.spritePosition }}
-        aria-hidden="true"
-      />
+      {avatar.symbol}
     </span>
   )
 }
