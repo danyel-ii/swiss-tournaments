@@ -30,8 +30,12 @@ export function getCurrentRoundMatches(tournament: Tournament): Match[] {
     return []
   }
 
+  return getRoundMatches(tournament.matches, tournament.currentRound)
+}
+
+export function getRoundMatches(matches: Match[], round: number): Match[] {
   return sortMatchesChronologically(
-    tournament.matches.filter((match) => match.round === tournament.currentRound),
+    matches.filter((match) => match.round === round),
   )
 }
 

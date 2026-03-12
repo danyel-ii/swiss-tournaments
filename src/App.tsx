@@ -2,11 +2,14 @@ import { useMemo, useState } from 'react'
 import { ActionBar } from './components/ActionBar'
 import { PairingsView } from './components/PairingsView'
 import { PlayerList } from './components/PlayerList'
+import { RoundNavigator } from './components/RoundNavigator'
 import { StandingsTable } from './components/StandingsTable'
 import { TournamentControls } from './components/TournamentControls'
 import { TournamentHeader } from './components/TournamentHeader'
+import { TournamentPulse } from './components/TournamentPulse'
 import {
   getCurrentRoundMatches,
+  getRoundMatches,
   getStandings,
   hasTournamentFinished,
   hasTournamentStarted,
@@ -20,6 +23,7 @@ function App() {
   const [playerName, setPlayerName] = useState('')
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
+  const [selectedRound, setSelectedRound] = useState(0)
 
   const standings = useMemo(
     () => getStandings(tournament.players, tournament.matches),
@@ -29,6 +33,25 @@ function App() {
     () => getCurrentRoundMatches(tournament),
     [tournament],
   )
+  const availableRounds = useMemo(
+    () =>
+      Array.from(
+        new Set(tournament.matches.map((match) => match.round)),
+      ).sort((left, right) => left - right),
+    [tournament.matches],
+  )
+  const viewedRound =
+    selectedRound > 0 && selectedRound <= tournament.currentRound
+      ? selectedRound
+      : tournament.currentRound
+  const viewedMatches = useMemo(() => {
+    if (viewedRound < 1) {
+      return []
+    }
+
+    return getRoundMatches(tournament.matches, viewedRound)
+  }, [tournament.matches, viewedRound])
+  const isViewingCurrentRound = viewedRound === tournament.currentRound
   const resultsEntered = currentRoundMatches.filter(
     (match) => !match.isBye && match.result !== null,
   ).length
@@ -38,6 +61,7 @@ function App() {
     isCurrentRoundComplete(tournament.matches, tournament.currentRound)
   const inProgress = hasTournamentStarted(tournament)
   const completed = hasTournamentFinished(tournament)
+  const leader = standings[0]
   const roundsError =
     tournament.totalRounds >= 1 && tournament.totalRounds <= 20
       ? null
@@ -74,6 +98,7 @@ function App() {
     }
 
     dispatch({ type: 'START_TOURNAMENT' })
+    setSelectedRound(1)
   }
 
   const handleSetResult = (matchId: string, result: ManualMatchResult) => {
@@ -91,6 +116,7 @@ function App() {
     }
 
     dispatch({ type: 'RESET_TOURNAMENT' })
+    setSelectedRound(0)
     setPlayerName('')
     setPlayerError(null)
     setDuplicateWarning(null)
@@ -101,8 +127,18 @@ function App() {
     roundComplete &&
     tournament.currentRound < tournament.totalRounds
 
+  const handleGenerateNextRound = () => {
+    if (!canGenerateNextRound) {
+      return
+    }
+
+    const nextRound = tournament.currentRound + 1
+    dispatch({ type: 'GENERATE_NEXT_ROUND' })
+    setSelectedRound(nextRound)
+  }
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.18),_transparent_35%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-4 py-8 text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.16),_transparent_18%),radial-gradient(circle_at_right,_rgba(168,85,247,0.14),_transparent_24%),linear-gradient(180deg,_#020617_0%,_#0f172a_45%,_#111827_100%)] px-4 py-8 text-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <TournamentHeader tournament={tournament} />
 
@@ -117,6 +153,21 @@ function App() {
           }
           onStart={handleStart}
           onReset={handleReset}
+        />
+
+        <TournamentPulse
+          currentRound={tournament.currentRound}
+          totalRounds={tournament.totalRounds}
+          activeMatches={currentRoundMatches.filter((match) => !match.isBye).length}
+          leader={leader?.name ?? 'TBD'}
+          leaderScore={leader?.score ?? 0}
+        />
+
+        <RoundNavigator
+          rounds={availableRounds}
+          selectedRound={viewedRound}
+          currentRound={tournament.currentRound}
+          onSelectRound={setSelectedRound}
         />
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
@@ -138,14 +189,20 @@ function App() {
             }
           />
 
-          <StandingsTable standings={standings} />
+          <StandingsTable
+            standings={standings}
+            players={tournament.players}
+            matches={tournament.matches}
+          />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <PairingsView
             hasStarted={inProgress}
-            matches={currentRoundMatches}
+            matches={viewedMatches}
             players={tournament.players}
+            viewedRound={viewedRound}
+            isViewingCurrentRound={isViewingCurrentRound}
             resultsEntered={resultsEntered}
             resultTarget={resultTarget}
             isRoundComplete={roundComplete}
@@ -157,7 +214,7 @@ function App() {
             isCompleted={completed}
             currentRound={tournament.currentRound}
             totalRounds={tournament.totalRounds}
-            onGenerateNextRound={() => dispatch({ type: 'GENERATE_NEXT_ROUND' })}
+            onGenerateNextRound={handleGenerateNextRound}
           />
         </div>
       </div>

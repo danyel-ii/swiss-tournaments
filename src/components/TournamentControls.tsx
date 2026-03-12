@@ -25,21 +25,21 @@ export function TournamentControls({
     tournament.totalRounds <= 20
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-[28px] border border-white/10 bg-white/[0.07] p-6 shadow-[0_18px_60px_rgba(2,6,23,0.3)] backdrop-blur-xl">
       <div className="flex flex-col gap-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-200">
             Tournament name
             <input
               type="text"
               value={tournament.name}
               disabled={!inSetup}
               onChange={(event) => onNameChange(event.target.value)}
-              className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+              className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/25 disabled:cursor-not-allowed disabled:bg-slate-900/50 disabled:text-slate-500"
             />
           </label>
 
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-200">
             Total rounds
             <input
               type="number"
@@ -48,19 +48,19 @@ export function TournamentControls({
               value={tournament.totalRounds}
               disabled={!inSetup}
               onChange={(event) => onRoundsChange(Number(event.target.value))}
-              className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+              className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/25 disabled:cursor-not-allowed disabled:bg-slate-900/50 disabled:text-slate-500"
             />
           </label>
         </div>
 
-        {roundsError ? <p className="text-sm text-rose-600">{roundsError}</p> : null}
+        {roundsError ? <p className="text-sm text-rose-300">{roundsError}</p> : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             onClick={onStart}
             disabled={!canStart}
-            className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             Start Tournament
           </button>
@@ -68,7 +68,7 @@ export function TournamentControls({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            className="rounded-2xl border border-white/12 bg-slate-950/30 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-rose-300/60 hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-white/10"
           >
             Reset Tournament
           </button>
