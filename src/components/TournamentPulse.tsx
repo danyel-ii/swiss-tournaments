@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CrownIcon, FlagIcon, HourglassIcon } from './GamePieces'
+import { CrownIcon, HourglassIcon, PawnIcon } from './GamePieces'
 import { HelpTooltip } from './HelpTooltip'
 import { formatScore } from '../utils/format'
 
@@ -35,12 +35,12 @@ function StatCard({
   help,
 }: StatCardProps) {
   return (
-    <div className={`relative overflow-hidden p-6 ${shellClassName}`}>
+    <div className={`rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] ${shellClassName}`}>
       <div className="flex items-center gap-2">
-        <span className="rounded-full bg-white/35 p-2 shadow-[inset_0_2px_0_rgba(255,255,255,0.45)]">
+        <span className="rounded-2xl bg-sky-50 p-2 text-sky-500">
           {icon}
         </span>
-        <p className="font-display text-[10px] font-semibold uppercase tracking-[0.34em] text-slate-700">
+        <p className="font-display text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
           {eyebrow}
         </p>
         {help ? (
@@ -51,15 +51,15 @@ function StatCard({
       </div>
       <div className="relative mt-5">
         {leader ? (
-          <span className="absolute -top-5 left-1">
-            <CrownIcon className="h-5 w-5" />
+          <span className="absolute -top-4 left-1">
+            <CrownIcon className="h-4 w-4" />
           </span>
         ) : null}
-      <p className="font-display text-4xl font-extrabold tracking-[-0.04em] text-slate-950 md:text-5xl">
+      <p className="font-display text-4xl font-bold tracking-[-0.04em] text-slate-900 md:text-5xl">
         {value}
       </p>
       </div>
-      <p className="font-data mt-2 text-sm text-slate-700">{detail}</p>
+      <p className="font-data mt-2 text-sm text-slate-500">{detail}</p>
     </div>
   )
 }
@@ -81,7 +81,7 @@ export function TournamentPulse({
             ? `Round ${currentRound} of ${totalRounds}`
             : `Configure up to ${totalRounds} rounds`
         }
-        shellClassName="[clip-path:polygon(25%_0%,75%_0%,100%_35%,100%_65%,75%_100%,25%_100%,0%_65%,0%_35%)] rounded-[32px] border border-emerald-700/15 bg-[linear-gradient(180deg,_#a7e2b0_0%,_#5fc878_100%)] shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_16px_28px_rgba(21,78,47,0.18)]"
+        shellClassName=""
         icon={<HourglassIcon className="h-5 w-5" />}
         help={{
           label: 'How current round works',
@@ -94,8 +94,8 @@ export function TournamentPulse({
         eyebrow="Active Matches"
         value={`${activeMatches}`}
         detail="Boards currently on the desk"
-        shellClassName="[clip-path:polygon(25%_0%,75%_0%,100%_35%,100%_65%,75%_100%,25%_100%,0%_65%,0%_35%)] rounded-[32px] border border-violet-700/15 bg-[linear-gradient(180deg,_#d0b7f8_0%,_#9a7bd9_100%)] shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_16px_28px_rgba(91,57,147,0.18)]"
-        icon={<FlagIcon className="h-5 w-5" />}
+        shellClassName=""
+        icon={<span className="flex items-center"><PawnIcon className="h-5 w-5" /><PawnIcon className="-ml-1 h-5 w-5" /></span>}
         help={{
           label: 'How active matches are counted',
           title: 'Active Matches',
@@ -107,7 +107,7 @@ export function TournamentPulse({
         eyebrow="Leader"
         value={leader}
         detail={`Top score ${formatScore(leaderScore)}`}
-        shellClassName="[clip-path:polygon(25%_0%,75%_0%,100%_35%,100%_65%,75%_100%,25%_100%,0%_65%,0%_35%)] rounded-[32px] border border-amber-700/15 bg-[linear-gradient(180deg,_#f3dd95_0%,_#ddb24a_100%)] shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_16px_28px_rgba(133,96,21,0.18)]"
+        shellClassName=""
         icon={<CrownIcon className="h-5 w-5" />}
         leader
         help={{

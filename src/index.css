@@ -2,8 +2,8 @@
 
 :root {
   color: #0f172a;
-  background: #dff0f5;
-  font-family: "Andika", "SFMono-Regular", "Consolas", monospace;
+  background: #f5f7fb;
+  font-family: "Outfit", "Lexend", "Avenir Next", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
@@ -29,9 +29,9 @@ textarea {
 }
 
 .font-display {
-  font-family: "Avenir Next Rounded", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  font-family: "Outfit", "Lexend", "Avenir Next", "Segoe UI", sans-serif;
 }
 
 .font-data {
-  font-family: "Andika", "SFMono-Regular", "Consolas", monospace;
+  font-family: "Outfit", "Lexend", "Avenir Next", "Segoe UI", sans-serif;
 }

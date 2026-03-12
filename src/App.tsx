@@ -139,9 +139,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.75),_transparent_20%),linear-gradient(180deg,_#dff4f6_0%,_#c9e7df_48%,_#d5e7f9_100%)] px-4 py-8 text-slate-900">
-      <div className="mx-auto max-w-7xl rounded-[40px] border border-[#d0dcc4] bg-[linear-gradient(180deg,_#4e91b0_0%,_#376b85_38%,_#2d5c55_100%)] p-4 shadow-[inset_0_2px_0_rgba(255,255,255,0.25),0_24px_50px_rgba(37,70,81,0.2)] md:p-6">
-      <div className="flex flex-col gap-6">
+    <div className="min-h-screen bg-[#f5f7fb] px-4 py-8 text-slate-900">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <TournamentHeader tournament={tournament} />
 
         <TournamentControls
@@ -220,7 +219,6 @@ function App() {
             onGenerateNextRound={handleGenerateNextRound}
           />
         </div>
-      </div>
       </div>
     </div>
   )

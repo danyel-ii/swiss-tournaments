@@ -35,11 +35,11 @@ export function PairingsView({
   onSetResult,
 }: PairingsViewProps) {
   return (
-    <section className="rounded-[32px] border border-[#2f6f66]/18 bg-[linear-gradient(180deg,_#edf5e3_0%,_#d8e5ca_100%)] p-6 shadow-[inset_0_2px_0_rgba(255,255,255,0.78),0_18px_30px_rgba(63,96,75,0.12)]">
+    <section className="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="font-display text-2xl font-bold text-[#27535d]">
+            <h2 className="font-display text-2xl font-semibold text-slate-900">
               Pairings and results
             </h2>
             <HelpTooltip
@@ -51,7 +51,7 @@ export function PairingsView({
               result. `0-0` is a real completed result, not a placeholder.
             </HelpTooltip>
           </div>
-          <p className="font-data mt-1 text-sm text-[#5f736c]">
+          <p className="font-data mt-1 text-sm text-slate-500">
             {hasStarted
               ? isViewingCurrentRound
                 ? isRoundComplete
@@ -66,9 +66,9 @@ export function PairingsView({
             className={`inline-flex self-start rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
               isViewingCurrentRound
                 ? isRoundComplete
-                  ? 'bg-emerald-200 text-emerald-800'
-                  : 'bg-amber-200 text-amber-900'
-                : 'bg-sky-200 text-sky-900'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+                : 'bg-violet-100 text-violet-700'
             }`}
           >
             {isViewingCurrentRound
@@ -81,13 +81,13 @@ export function PairingsView({
       </div>
 
       {!hasStarted ? (
-        <div className="font-data mt-6 rounded-2xl border border-dashed border-[#acb899] bg-[#fffaf0] px-4 py-8 text-center text-sm text-[#67756f]">
+        <div className="font-data mt-6 rounded-3xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
           Pairings will appear after the tournament starts.
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[#bfd0bb] bg-[#fff9ed]">
-          <table className="min-w-full divide-y divide-[#d2dbc7] text-left text-sm">
-            <thead className="bg-[#d9e7d0] text-[#506860]">
+        <div className="mt-6 overflow-hidden rounded-3xl bg-slate-50">
+          <table className="min-w-full text-left text-sm">
+            <thead className="text-slate-400">
               <tr>
                 <th className="font-display px-4 py-3 font-semibold">Board</th>
                 <th className="font-display px-4 py-3 font-semibold">White</th>
@@ -107,19 +107,19 @@ export function PairingsView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2dbc7] bg-transparent">
+            <tbody className="divide-y divide-slate-200/70 bg-transparent">
               {matches.map((match) => (
                 <tr key={match.id}>
-                  <td className="font-display px-4 py-3 font-medium text-[#2b4e58]">{match.board}</td>
-                  <td className="font-data px-4 py-3 text-[#34535a]">
+                  <td className="font-display px-4 py-3 font-medium text-slate-900">{match.board}</td>
+                  <td className="font-data px-4 py-3 text-slate-700">
                     {getPlayerName(players, match.whitePlayerId)}
                   </td>
-                  <td className="font-data px-4 py-3 text-[#34535a]">
+                  <td className="font-data px-4 py-3 text-slate-700">
                     {match.isBye ? 'BYE' : getPlayerName(players, match.blackPlayerId)}
                   </td>
                   <td className="px-4 py-3">
                     {match.isBye ? (
-                      <span className="font-display rounded-full bg-amber-200 px-3 py-1 text-xs font-semibold text-amber-900">
+                      <span className="font-display rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
                         BYE
                       </span>
                     ) : (
@@ -130,7 +130,7 @@ export function PairingsView({
                         onChange={(event) =>
                           onSetResult(match.id, event.target.value as ManualMatchResult)
                         }
-                        className="font-data w-full rounded-xl border-2 border-[#d2b061] bg-[#fff7dc] px-3 py-2 text-[#244a54] outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200 disabled:cursor-not-allowed disabled:bg-[#ebe4cb] disabled:text-[#8d8b7f]"
+                        className="font-data w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                       >
                         <option value="">Select result</option>
                         {resultOptions.map((option) => (
