@@ -1,5 +1,5 @@
 import type { Tournament } from '../types/tournament'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 
 interface TournamentControlsProps {
   tournament: Tournament

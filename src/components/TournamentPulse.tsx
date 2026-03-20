@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { CrownIcon, HourglassIcon, PawnIcon } from './GamePieces'
 import { HelpTooltip } from './HelpTooltip'
 import { formatScore } from '../utils/format'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 
 interface TournamentPulseProps {
   currentRound: number

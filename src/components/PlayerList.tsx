@@ -1,6 +1,6 @@
 import { AvatarBadge, PawnIcon, ShieldIcon } from './GamePieces'
 import type { Player, TournamentStatus } from '../types/tournament'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 
 interface PlayerListProps {
   players: Player[]

@@ -1,5 +1,5 @@
 import { AvatarBadge } from './GamePieces'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 import { formatScore } from '../utils/format'
 import type { PlayerStanding } from '../types/tournament'
 

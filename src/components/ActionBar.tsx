@@ -1,4 +1,4 @@
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 
 interface ActionBarProps {
   canGenerateNextRound: boolean

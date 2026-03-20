@@ -1,6 +1,6 @@
 import { HelpTooltip } from './HelpTooltip'
 import type { ManualMatchResult, Match, Player } from '../types/tournament'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 
 interface PairingsViewProps {
   hasStarted: boolean
