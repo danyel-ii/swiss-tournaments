@@ -17,19 +17,3 @@ export function slugifyFileName(value: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
-
-export function formatStatusLabel(
-  status: 'setup' | 'in_progress' | 'completed',
-  currentRound: number,
-  totalRounds: number,
-): string {
-  if (status === 'setup') {
-    return 'Setup'
-  }
-
-  if (status === 'completed') {
-    return 'Completed'
-  }
-
-  return `Round ${currentRound} of ${totalRounds}`
-}

@@ -1,14 +1,10 @@
-import { useMemo, useState } from 'react'
-import { ActionBar } from './components/ActionBar'
-import { PairingsView } from './components/PairingsView'
-import { PlayerList } from './components/PlayerList'
-import { RoundNavigator } from './components/RoundNavigator'
-import { StandingsTable } from './components/StandingsTable'
+import { type Dispatch, useMemo, useState } from 'react'
+import { DashboardView } from './components/DashboardView'
 import { StandingsFocusView } from './components/StandingsFocusView'
-import { TournamentControls } from './components/TournamentControls'
+import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
-import { TournamentPulse } from './components/TournamentPulse'
-import { useI18n } from './i18n'
+import { ViewTabs } from './components/ViewTabs'
+import { useI18n } from './useI18n'
 import {
   getCurrentRoundMatches,
   getRoundMatches,
@@ -17,18 +13,35 @@ import {
   hasTournamentStarted,
   isCurrentRoundComplete,
 } from './core/ranking'
-import { useTournament } from './hooks/useTournament'
+import { type TournamentAction, useTournament } from './hooks/useTournament'
+import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
 import { downloadTournamentExport } from './utils/export'
 
-function App() {
-  const { tournament, dispatch } = useTournament()
+interface TournamentWorkspaceProps {
+  tournament: Tournament
+  tournaments: Tournament[]
+  activeTournamentId: string
+  dispatch: Dispatch<TournamentAction>
+  activeView: 'dashboard' | 'standings' | 'tournaments'
+  setActiveView: (view: 'dashboard' | 'standings' | 'tournaments') => void
+}
+
+function TournamentWorkspace({
+  tournament,
+  tournaments,
+  activeTournamentId,
+  dispatch,
+  activeView,
+  setActiveView,
+}: TournamentWorkspaceProps) {
   const { t } = useI18n()
   const [playerName, setPlayerName] = useState('')
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
-  const [selectedRound, setSelectedRound] = useState(0)
-  const [activeView, setActiveView] = useState<'dashboard' | 'standings'>('dashboard')
+  const [selectedRound, setSelectedRound] = useState(
+    tournament.currentRound > 0 ? tournament.currentRound : 0,
+  )
 
   const standings = useMemo(
     () => getStandings(tournament.players, tournament.matches),
@@ -147,121 +160,91 @@ function App() {
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <TournamentHeader tournament={tournament} />
 
-        <section className="theme-panel rounded-3xl p-2">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveView('dashboard')}
-              className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
-                activeView === 'dashboard'
-                  ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
-                  : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
-              }`}
-            >
-              {t.navigation.dashboard}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('standings')}
-              className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
-                activeView === 'standings'
-                  ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
-                  : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
-              }`}
-            >
-              {t.navigation.standings}
-            </button>
-          </div>
-        </section>
+        <ViewTabs activeView={activeView} onSelectView={setActiveView} />
 
-        {activeView === 'standings' ? (
+        {activeView === 'tournaments' ? (
+          <TournamentDirectoryView
+            tournaments={tournaments}
+            activeTournamentId={activeTournamentId}
+            onCreateTournament={() => {
+              dispatch({ type: 'CREATE_TOURNAMENT' })
+              setActiveView('dashboard')
+            }}
+            onOpenTournament={(tournamentId) => {
+              dispatch({ type: 'SELECT_TOURNAMENT', payload: { tournamentId } })
+              setActiveView('dashboard')
+            }}
+          />
+        ) : activeView === 'standings' ? (
           <StandingsFocusView
             standings={standings}
             currentRound={tournament.currentRound}
             totalRounds={tournament.totalRounds}
           />
         ) : (
-          <>
-            <TournamentControls
-              tournament={tournament}
-              roundsError={roundsError}
-              onNameChange={(value) =>
-                dispatch({ type: 'SET_TOURNAMENT_NAME', payload: { name: value } })
+          <DashboardView
+            tournament={tournament}
+            standings={standings}
+            currentRoundMatches={currentRoundMatches}
+            viewedMatches={viewedMatches}
+            availableRounds={availableRounds}
+            viewedRound={viewedRound}
+            isViewingCurrentRound={isViewingCurrentRound}
+            resultsEntered={resultsEntered}
+            resultTarget={resultTarget}
+            roundComplete={roundComplete}
+            roundsError={roundsError}
+            playerName={playerName}
+            playerError={playerError}
+            duplicateWarning={duplicateWarning}
+            canGenerateNextRound={canGenerateNextRound}
+            completed={completed}
+            inProgress={inProgress}
+            leaderName={leader?.name ?? t.common.unknown}
+            leaderScore={leader?.score ?? 0}
+            onNameChange={(value) =>
+              dispatch({ type: 'SET_TOURNAMENT_NAME', payload: { name: value } })
+            }
+            onRoundsChange={(value) =>
+              dispatch({ type: 'SET_TOTAL_ROUNDS', payload: { totalRounds: value } })
+            }
+            onStart={handleStart}
+            onExport={() => downloadTournamentExport(tournament)}
+            onReset={handleReset}
+            onSelectRound={setSelectedRound}
+            onPlayerNameChange={(value) => {
+              setPlayerName(value)
+              if (playerError) {
+                setPlayerError(null)
               }
-              onRoundsChange={(value) =>
-                dispatch({ type: 'SET_TOTAL_ROUNDS', payload: { totalRounds: value } })
-              }
-              onStart={handleStart}
-              onExport={() => downloadTournamentExport(tournament)}
-              onReset={handleReset}
-            />
-
-            <TournamentPulse
-              currentRound={tournament.currentRound}
-              totalRounds={tournament.totalRounds}
-              activeMatches={currentRoundMatches.filter((match) => !match.isBye).length}
-              leader={leader?.name ?? t.common.unknown}
-              leaderScore={leader?.score ?? 0}
-            />
-
-            <RoundNavigator
-              rounds={availableRounds}
-              selectedRound={viewedRound}
-              currentRound={tournament.currentRound}
-              onSelectRound={setSelectedRound}
-            />
-
-            <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
-              <PlayerList
-                players={tournament.players}
-                status={tournament.status}
-                playerName={playerName}
-                error={playerError}
-                duplicateWarning={duplicateWarning}
-                onPlayerNameChange={(value) => {
-                  setPlayerName(value)
-                  if (playerError) {
-                    setPlayerError(null)
-                  }
-                }}
-                onAddPlayer={handleAddPlayer}
-                onRemovePlayer={(playerId) =>
-                  dispatch({ type: 'REMOVE_PLAYER', payload: { playerId } })
-                }
-              />
-
-              <StandingsTable
-                standings={standings}
-                players={tournament.players}
-                matches={tournament.matches}
-              />
-            </div>
-
-            <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-              <PairingsView
-                hasStarted={inProgress}
-                matches={viewedMatches}
-                players={tournament.players}
-                viewedRound={viewedRound}
-                isViewingCurrentRound={isViewingCurrentRound}
-                resultsEntered={resultsEntered}
-                resultTarget={resultTarget}
-                isRoundComplete={roundComplete}
-                onSetResult={handleSetResult}
-              />
-
-              <ActionBar
-                canGenerateNextRound={canGenerateNextRound}
-                isCompleted={completed}
-                currentRound={tournament.currentRound}
-                totalRounds={tournament.totalRounds}
-                onGenerateNextRound={handleGenerateNextRound}
-              />
-            </div>
-          </>
+            }}
+            onAddPlayer={handleAddPlayer}
+            onRemovePlayer={(playerId) =>
+              dispatch({ type: 'REMOVE_PLAYER', payload: { playerId } })
+            }
+            onSetResult={handleSetResult}
+            onGenerateNextRound={handleGenerateNextRound}
+          />
         )}
       </div>
     </div>
+  )
+}
+
+function App() {
+  const { tournament, tournaments, activeTournamentId, dispatch } = useTournament()
+  const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments'>('dashboard')
+
+  return (
+    <TournamentWorkspace
+      key={tournament.id}
+      tournament={tournament}
+      tournaments={tournaments}
+      activeTournamentId={activeTournamentId}
+      dispatch={dispatch}
+      activeView={activeView}
+      setActiveView={setActiveView}
+    />
   )
 }
 

@@ -17,12 +17,17 @@ function withUpdatedTimestamp(tournament: Tournament): Tournament {
   }
 }
 
-export function createDefaultTournament(): Tournament {
+interface CreateTournamentOptions {
+  id?: string
+  name?: string
+}
+
+export function createDefaultTournament(options: CreateTournamentOptions = {}): Tournament {
   const timestamp = now()
 
   return {
-    id: crypto.randomUUID(),
-    name: 'Chess Tournament',
+    id: options.id ?? crypto.randomUUID(),
+    name: options.name ?? 'Chess Tournament',
     totalRounds: 5,
     currentRound: 0,
     status: 'setup',
@@ -191,6 +196,9 @@ export function generateNextRound(tournament: Tournament): Tournament {
   })
 }
 
-export function resetTournament(): Tournament {
-  return createDefaultTournament()
+export function resetTournament(tournament?: Tournament): Tournament {
+  return createDefaultTournament({
+    id: tournament?.id,
+    name: tournament?.name,
+  })
 }

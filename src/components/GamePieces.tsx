@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { getAvatarForSeed } from '../utils/playerAvatar'
 import bishopIcon from '../assets/game-icons/chess/chess-bishop.svg'
 import kingIcon from '../assets/game-icons/chess/chess-king.svg'
@@ -11,30 +10,14 @@ interface IconProps {
   className?: string
 }
 
-function maskStyle(assetUrl: string, color = 'currentColor'): CSSProperties {
-  return {
-    backgroundColor: color,
-    WebkitMaskImage: `url(${assetUrl})`,
-    maskImage: `url(${assetUrl})`,
-    WebkitMaskRepeat: 'no-repeat',
-    maskRepeat: 'no-repeat',
-    WebkitMaskPosition: 'center',
-    maskPosition: 'center',
-    WebkitMaskSize: 'contain',
-    maskSize: 'contain',
-  }
-}
-
-function MaskedIcon({
+function SvgIcon({
   assetUrl,
   className = 'h-5 w-5',
-  color,
 }: {
   assetUrl: string
   className?: string
-  color?: string
 }) {
-  return <span className={`inline-block shrink-0 ${className}`} style={maskStyle(assetUrl, color)} aria-hidden="true" />
+  return <img src={assetUrl} alt="" className={`block shrink-0 ${className}`} aria-hidden="true" />
 }
 
 function getAvatarIcon(icon: 'bishop' | 'king' | 'knight' | 'pawn' | 'queen' | 'rook') {
@@ -68,27 +51,31 @@ export function AvatarBadge({
 
   return (
     <span
-      className={`inline-flex ${sizeClass} items-center justify-center rounded-full ${avatar.background} ring-2 ${avatar.ring} ${avatar.text} shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
+      className={`inline-flex ${sizeClass} items-center justify-center rounded-full border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
       title={avatar.label}
       aria-label={avatar.label}
+      style={{
+        backgroundColor: avatar.backgroundColor,
+        borderColor: avatar.borderColor,
+      }}
     >
-      <MaskedIcon assetUrl={getAvatarIcon(avatar.icon)} className={iconClass} />
+      <SvgIcon assetUrl={getAvatarIcon(avatar.icon)} className={iconClass} />
     </span>
   )
 }
 
 export function CrownIcon({ className = 'h-6 w-6' }: IconProps) {
-  return <MaskedIcon assetUrl={kingIcon} className={className} />
+  return <SvgIcon assetUrl={kingIcon} className={className} />
 }
 
 export function PawnIcon({ className = 'h-5 w-5' }: IconProps) {
-  return <MaskedIcon assetUrl={pawnIcon} className={className} />
+  return <SvgIcon assetUrl={pawnIcon} className={className} />
 }
 
 export function HourglassIcon({ className = 'h-5 w-5' }: IconProps) {
-  return <MaskedIcon assetUrl={bishopIcon} className={className} />
+  return <SvgIcon assetUrl={bishopIcon} className={className} />
 }
 
 export function ShieldIcon({ className = 'h-5 w-5' }: IconProps) {
-  return <MaskedIcon assetUrl={knightIcon} className={className} />
+  return <SvgIcon assetUrl={knightIcon} className={className} />
 }

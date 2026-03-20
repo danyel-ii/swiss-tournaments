@@ -1,5 +1,5 @@
 import { AvatarBadge } from './GamePieces'
-import { useI18n } from '../i18n'
+import { useI18n } from '../useI18n'
 import { formatScore } from '../utils/format'
 import type { PlayerStanding } from '../types/tournament'
 
@@ -28,9 +28,6 @@ export function StandingsFocusView({
             <h2 className="theme-heading mt-2 font-display text-4xl font-bold tracking-[-0.04em] md:text-5xl">
               {t.standings.focusTitle}
             </h2>
-            <p className="theme-copy mt-2 font-data text-base">
-              {t.standings.focusSubtitle}
-            </p>
           </div>
 
           {leader ? (
