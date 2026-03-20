@@ -1,8 +1,8 @@
 import { useI18n } from '../useI18n'
 
 interface ViewTabsProps {
-  activeView: 'dashboard' | 'standings'
-  onSelectView: (view: 'dashboard' | 'standings') => void
+  activeView: 'dashboard' | 'standings' | 'tournaments'
+  onSelectView: (view: 'dashboard' | 'standings' | 'tournaments') => void
 }
 
 export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
@@ -21,6 +21,17 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
           }`}
         >
           {t.navigation.dashboard}
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelectView('tournaments')}
+          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+            activeView === 'tournaments'
+              ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
+              : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
+          }`}
+        >
+          {t.navigation.tournaments}
         </button>
         <button
           type="button"

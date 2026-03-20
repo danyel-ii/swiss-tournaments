@@ -24,8 +24,8 @@ export function HelpTooltip({
       </button>
       <span
         role="tooltip"
-        className={`pointer-events-none absolute top-7 z-20 hidden w-72 rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 text-left shadow-[0_18px_40px_rgba(54,6,77,0.16)] group-hover:block group-focus-within:block ${
-          align === 'right' ? 'right-0' : 'left-0'
+        className={`pointer-events-none fixed inset-x-4 bottom-4 z-30 hidden max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 text-left shadow-[0_18px_40px_rgba(54,6,77,0.16)] group-hover:block group-focus-within:block sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-7 sm:z-20 sm:max-h-none sm:w-72 sm:overflow-visible ${
+          align === 'right' ? 'sm:right-0' : 'sm:left-0'
         }`}
       >
         <span className="font-display block text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--theme-red)]">

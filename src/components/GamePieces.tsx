@@ -51,9 +51,13 @@ export function AvatarBadge({
 
   return (
     <span
-      className={`inline-flex ${sizeClass} items-center justify-center rounded-full ${avatar.background} ring-2 ${avatar.ring} ${avatar.text} shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
+      className={`inline-flex ${sizeClass} items-center justify-center rounded-full border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)]`}
       title={avatar.label}
       aria-label={avatar.label}
+      style={{
+        backgroundColor: avatar.backgroundColor,
+        borderColor: avatar.borderColor,
+      }}
     >
       <SvgIcon assetUrl={getAvatarIcon(avatar.icon)} className={iconClass} />
     </span>

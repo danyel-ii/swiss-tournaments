@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
 import { StandingsFocusView } from './components/StandingsFocusView'
+import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
 import { ViewTabs } from './components/ViewTabs'
 import { useI18n } from './useI18n'
@@ -12,18 +13,35 @@ import {
   hasTournamentStarted,
   isCurrentRoundComplete,
 } from './core/ranking'
-import { useTournament } from './hooks/useTournament'
+import { type TournamentAction, useTournament } from './hooks/useTournament'
+import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
 import { downloadTournamentExport } from './utils/export'
 
-function App() {
-  const { tournament, dispatch } = useTournament()
+interface TournamentWorkspaceProps {
+  tournament: Tournament
+  tournaments: Tournament[]
+  activeTournamentId: string
+  dispatch: Dispatch<TournamentAction>
+  activeView: 'dashboard' | 'standings' | 'tournaments'
+  setActiveView: (view: 'dashboard' | 'standings' | 'tournaments') => void
+}
+
+function TournamentWorkspace({
+  tournament,
+  tournaments,
+  activeTournamentId,
+  dispatch,
+  activeView,
+  setActiveView,
+}: TournamentWorkspaceProps) {
   const { t } = useI18n()
   const [playerName, setPlayerName] = useState('')
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
-  const [selectedRound, setSelectedRound] = useState(0)
-  const [activeView, setActiveView] = useState<'dashboard' | 'standings'>('dashboard')
+  const [selectedRound, setSelectedRound] = useState(
+    tournament.currentRound > 0 ? tournament.currentRound : 0,
+  )
 
   const standings = useMemo(
     () => getStandings(tournament.players, tournament.matches),
@@ -144,7 +162,20 @@ function App() {
 
         <ViewTabs activeView={activeView} onSelectView={setActiveView} />
 
-        {activeView === 'standings' ? (
+        {activeView === 'tournaments' ? (
+          <TournamentDirectoryView
+            tournaments={tournaments}
+            activeTournamentId={activeTournamentId}
+            onCreateTournament={() => {
+              dispatch({ type: 'CREATE_TOURNAMENT' })
+              setActiveView('dashboard')
+            }}
+            onOpenTournament={(tournamentId) => {
+              dispatch({ type: 'SELECT_TOURNAMENT', payload: { tournamentId } })
+              setActiveView('dashboard')
+            }}
+          />
+        ) : activeView === 'standings' ? (
           <StandingsFocusView
             standings={standings}
             currentRound={tournament.currentRound}
@@ -197,6 +228,23 @@ function App() {
         )}
       </div>
     </div>
+  )
+}
+
+function App() {
+  const { tournament, tournaments, activeTournamentId, dispatch } = useTournament()
+  const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments'>('dashboard')
+
+  return (
+    <TournamentWorkspace
+      key={tournament.id}
+      tournament={tournament}
+      tournaments={tournaments}
+      activeTournamentId={activeTournamentId}
+      dispatch={dispatch}
+      activeView={activeView}
+      setActiveView={setActiveView}
+    />
   )
 }
 

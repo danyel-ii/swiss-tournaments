@@ -28,7 +28,20 @@ export type TranslationSet = {
   }
   navigation: {
     dashboard: string
+    tournaments: string
     standings: string
+  }
+  tournaments: {
+    directoryEyebrow: string
+    title: string
+    subtitle: (count: number) => string
+    createTournament: string
+    active: string
+    openTournament: string
+    openCurrent: string
+    tournamentId: (id: string) => string
+    players: (count: number) => string
+    updatedAt: (value: string) => string
   }
   controls: {
     tournamentName: string
@@ -184,7 +197,20 @@ export const translations: Record<Language, TranslationSet> = {
     },
     navigation: {
       dashboard: 'Dashboard',
+      tournaments: 'Tournaments',
       standings: 'Standings',
+    },
+    tournaments: {
+      directoryEyebrow: 'Multi Swiss',
+      title: 'Tournament Directory',
+      subtitle: (count) => `${count} tournament${count === 1 ? '' : 's'} saved in this browser`,
+      createTournament: 'Create Tournament',
+      active: 'Active',
+      openTournament: 'Open Tournament',
+      openCurrent: 'Continue',
+      tournamentId: (id) => `ID ${id}`,
+      players: (count) => `${count} player${count === 1 ? '' : 's'}`,
+      updatedAt: (value) => `Updated ${value}`,
     },
     controls: {
       tournamentName: 'Tournament name',
@@ -347,7 +373,20 @@ export const translations: Record<Language, TranslationSet> = {
     },
     navigation: {
       dashboard: 'Dashboard',
+      tournaments: 'Turniere',
       standings: 'Tabelle',
+    },
+    tournaments: {
+      directoryEyebrow: 'Multi Swiss',
+      title: 'Turnierliste',
+      subtitle: (count) => `${count} Turniere in diesem Browser gespeichert`,
+      createTournament: 'Turnier erstellen',
+      active: 'Aktiv',
+      openTournament: 'Turnier oeffnen',
+      openCurrent: 'Weiter',
+      tournamentId: (id) => `ID ${id}`,
+      players: (count) => `${count} Spieler`,
+      updatedAt: (value) => `Aktualisiert ${value}`,
     },
     controls: {
       tournamentName: 'Turniername',
