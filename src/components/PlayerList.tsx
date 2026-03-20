@@ -1,5 +1,6 @@
 import { AvatarBadge, PawnIcon, ShieldIcon } from './GamePieces'
 import type { Player, TournamentStatus } from '../types/tournament'
+import { useI18n } from '../i18n'
 
 interface PlayerListProps {
   players: Player[]
@@ -22,23 +23,24 @@ export function PlayerList({
   onAddPlayer,
   onRemovePlayer,
 }: PlayerListProps) {
+  const { t } = useI18n()
   const inSetup = status === 'setup'
 
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <section className="theme-panel rounded-3xl p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">Player Management</h2>
-          <p className="font-data mt-1 text-sm text-slate-500">
-            Add at least 2 players to start a tournament.
+          <h2 className="theme-heading font-display text-2xl font-semibold">{t.players.title}</h2>
+          <p className="theme-copy font-data mt-1 text-sm">
+            {t.players.subtitle}
           </p>
         </div>
       </div>
 
       {inSetup ? (
         <div className="mt-6 flex flex-col gap-3 md:flex-row">
-          <label className="flex-1 text-sm font-medium text-slate-700">
-            <span className="font-display">Player name</span>
+          <label className="theme-label flex-1 text-sm font-medium">
+            <span className="font-display">{t.players.playerName}</span>
             <input
               type="text"
               value={playerName}
@@ -49,46 +51,46 @@ export function PlayerList({
                   onAddPlayer()
                 }
               }}
-              className="font-data mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+              className="theme-input font-data mt-2 w-full rounded-2xl border px-4 py-3 outline-none transition"
             />
           </label>
 
           <button
             type="button"
             onClick={onAddPlayer}
-            className="font-display inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 md:self-end"
+            className="theme-button-aqua font-display inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none md:self-end"
           >
             <ShieldIcon className="h-4 w-4" />
-            Add Player
+            {t.players.addPlayer}
           </button>
         </div>
       ) : null}
 
-      {error ? <p className="font-data mt-3 text-sm text-rose-500">{error}</p> : null}
+      {error ? <p className="font-data mt-3 text-sm text-[var(--theme-red)]">{error}</p> : null}
       {duplicateWarning ? (
-        <p className="font-data mt-2 text-sm text-amber-600">{duplicateWarning}</p>
+        <p className="font-data mt-2 text-sm text-[var(--theme-red)]">{duplicateWarning}</p>
       ) : null}
 
       {players.length === 0 ? (
-        <div className="font-data mt-6 rounded-3xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-          No players registered yet.
+        <div className="theme-muted-panel theme-copy font-data mt-6 rounded-3xl px-4 py-8 text-center text-sm">
+          {t.players.noPlayers}
         </div>
       ) : (
         <div className="mt-6 space-y-3">
           {players.map((player) => (
             <article
               key={player.id}
-              className="flex items-center justify-between gap-4 rounded-3xl bg-slate-50 px-4 py-3"
+              className="theme-muted-panel flex items-center justify-between gap-4 rounded-3xl px-4 py-3"
             >
               <div className="flex items-center gap-3">
                 <AvatarBadge seed={player.seed} />
                 <div>
-                  <p className="font-display text-lg font-semibold text-slate-900">
+                  <p className="theme-heading font-display text-lg font-semibold">
                     {player.name}
                   </p>
-                  <p className="font-data inline-flex items-center gap-2 text-sm text-slate-500">
+                  <p className="theme-copy font-data inline-flex items-center gap-2 text-sm">
                     <PawnIcon className="h-4 w-4" />
-                    Seed {player.seed}
+                    {t.players.seed(player.seed)}
                   </p>
                 </div>
               </div>
@@ -96,9 +98,9 @@ export function PlayerList({
                 type="button"
                 disabled={!inSetup}
                 onClick={() => onRemovePlayer(player.id)}
-                className="font-display rounded-full bg-white px-4 py-2 text-sm font-semibold text-rose-500 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                className="font-display rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold text-[var(--theme-red)] transition hover:bg-[var(--theme-red-soft)] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Remove
+                {t.players.remove}
               </button>
             </article>
           ))}

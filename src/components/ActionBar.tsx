@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n'
+
 interface ActionBarProps {
   canGenerateNextRound: boolean
   isCompleted: boolean
@@ -13,20 +15,22 @@ export function ActionBar({
   totalRounds,
   onGenerateNextRound,
 }: ActionBarProps) {
+  const { t } = useI18n()
+
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <section className="theme-panel rounded-3xl p-6">
       {isCompleted ? (
-        <div className="font-display rounded-3xl bg-emerald-50 px-4 py-4 text-sm font-medium text-emerald-700">
-          Tournament complete. Final standings are locked after round {totalRounds}.
+        <div className="font-display rounded-3xl bg-[var(--theme-aqua-soft)] px-4 py-4 text-sm font-medium text-[var(--theme-plum)]">
+          {t.actions.completedMessage(totalRounds)}
         </div>
       ) : (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-slate-900">Round Actions</h2>
-            <p className="font-data mt-1 text-sm text-slate-500">
+            <h2 className="theme-heading font-display text-2xl font-semibold">{t.actions.title}</h2>
+            <p className="theme-copy font-data mt-1 text-sm">
               {currentRound === 0
-                ? 'Start the tournament to generate round 1.'
-                : 'Generate the next round only after all current results are entered.'}
+                ? t.actions.setupPrompt
+                : t.actions.generatePrompt}
             </p>
           </div>
 
@@ -34,9 +38,9 @@ export function ActionBar({
             type="button"
             disabled={!canGenerateNextRound}
             onClick={onGenerateNextRound}
-            className="font-display rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+            className="theme-button-plum font-display rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed"
           >
-            {currentRound >= totalRounds ? 'Final Round Complete' : 'Generate Next Round'}
+            {currentRound >= totalRounds ? t.actions.finalRoundComplete : t.actions.generateNextRound}
           </button>
         </div>
       )}

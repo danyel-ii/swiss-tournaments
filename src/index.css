@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  color: #0f172a;
-  background: #f5f7fb;
+  color: #36064d;
+  background: #f7f6e5;
   font-family: "Outfit", "Lexend", "Avenir Next", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -10,11 +10,37 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --theme-cream: #f7f6e5;
+  --theme-aqua: #76d2db;
+  --theme-red: #da4848;
+  --theme-plum: #36064d;
+  --theme-surface: #fffdf0;
+  --theme-surface-strong: #efeccf;
+  --theme-aqua-soft: #d7f3f6;
+  --theme-red-soft: #f6d1d1;
+  --theme-plum-soft: #e4daf0;
+  --theme-border: rgba(54, 6, 77, 0.14);
+  --theme-text: #36064d;
+  --theme-text-soft: rgba(54, 6, 77, 0.7);
+  --theme-shadow: 0 14px 34px rgba(54, 6, 77, 0.1);
+  --color-icon-round-bg: var(--theme-aqua-soft);
+  --color-icon-round-fg: var(--theme-plum);
+  --color-icon-match-bg: var(--theme-surface-strong);
+  --color-icon-match-fg: var(--theme-red);
+  --color-icon-leader-bg: var(--theme-red-soft);
+  --color-icon-leader-fg: var(--theme-plum);
+  --color-icon-accent-bg: var(--theme-aqua-soft);
+  --color-icon-accent-fg: var(--theme-plum);
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(118, 210, 219, 0.22), transparent 30%),
+    radial-gradient(circle at top right, rgba(218, 72, 72, 0.1), transparent 24%),
+    var(--theme-cream);
+  color: var(--theme-text);
 }
 
 button,
@@ -34,4 +60,78 @@ textarea {
 
 .font-data {
   font-family: "Outfit", "Lexend", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.theme-panel {
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--theme-shadow);
+}
+
+.theme-muted-panel {
+  background: color-mix(in srgb, var(--theme-cream) 76%, white 24%);
+  border: 1px solid rgba(54, 6, 77, 0.08);
+}
+
+.theme-heading {
+  color: var(--theme-text);
+}
+
+.theme-copy {
+  color: var(--theme-text-soft);
+}
+
+.theme-label {
+  color: var(--theme-text-soft);
+}
+
+.theme-input {
+  border-color: rgba(54, 6, 77, 0.16);
+  background: color-mix(in srgb, var(--theme-cream) 88%, white 12%);
+  color: var(--theme-text);
+}
+
+.theme-input:focus {
+  border-color: var(--theme-aqua);
+  box-shadow: 0 0 0 4px rgba(118, 210, 219, 0.2);
+}
+
+.theme-button-plum {
+  background: var(--theme-plum);
+  color: var(--theme-cream);
+}
+
+.theme-button-plum:hover {
+  background: color-mix(in srgb, var(--theme-plum) 86%, black 14%);
+}
+
+.theme-button-aqua {
+  background: var(--theme-aqua);
+  color: var(--theme-plum);
+}
+
+.theme-button-aqua:hover {
+  background: color-mix(in srgb, var(--theme-aqua) 88%, white 12%);
+}
+
+.theme-button-red {
+  background: var(--theme-red);
+  color: var(--theme-cream);
+}
+
+.theme-button-red:hover {
+  background: color-mix(in srgb, var(--theme-red) 90%, black 10%);
+}
+
+.theme-button-plum:focus,
+.theme-button-aqua:focus,
+.theme-button-red:focus {
+  box-shadow: 0 0 0 4px rgba(118, 210, 219, 0.22);
+}
+
+.theme-button-plum:disabled,
+.theme-button-aqua:disabled,
+.theme-button-red:disabled {
+  background: rgba(54, 6, 77, 0.16);
+  color: rgba(54, 6, 77, 0.45);
 }

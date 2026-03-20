@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { CrownIcon, HourglassIcon, PawnIcon } from './GamePieces'
 import { HelpTooltip } from './HelpTooltip'
 import { formatScore } from '../utils/format'
+import { useI18n } from '../i18n'
 
 interface TournamentPulseProps {
   currentRound: number
@@ -16,6 +17,7 @@ interface StatCardProps {
   value: string
   detail: string
   shellClassName: string
+  iconShellClassName: string
   icon: ReactNode
   leader?: boolean
   help?: {
@@ -30,17 +32,18 @@ function StatCard({
   value,
   detail,
   shellClassName,
+  iconShellClassName,
   icon,
   leader,
   help,
 }: StatCardProps) {
   return (
-    <div className={`rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] ${shellClassName}`}>
+    <div className={`theme-panel rounded-3xl p-6 ${shellClassName}`}>
       <div className="flex items-center gap-2">
-        <span className="rounded-2xl bg-sky-50 p-2 text-sky-500">
+        <span className={`rounded-2xl p-2 ${iconShellClassName}`}>
           {icon}
         </span>
-        <p className="font-display text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+        <p className="theme-copy font-display text-[11px] font-semibold uppercase tracking-[0.24em]">
           {eyebrow}
         </p>
         {help ? (
@@ -55,11 +58,11 @@ function StatCard({
             <CrownIcon className="h-4 w-4" />
           </span>
         ) : null}
-      <p className="font-display text-4xl font-bold tracking-[-0.04em] text-slate-900 md:text-5xl">
+      <p className="theme-heading font-display text-4xl font-bold tracking-[-0.04em] md:text-5xl">
         {value}
       </p>
       </div>
-      <p className="font-data mt-2 text-sm text-slate-500">{detail}</p>
+      <p className="theme-copy font-data mt-2 text-sm">{detail}</p>
     </div>
   )
 }
@@ -71,50 +74,52 @@ export function TournamentPulse({
   leader,
   leaderScore,
 }: TournamentPulseProps) {
+  const { t } = useI18n()
+
   return (
     <section className="grid gap-4 md:grid-cols-3">
       <StatCard
-        eyebrow="Current Round"
-        value={currentRound > 0 ? `${currentRound}` : 'Setup'}
+        eyebrow={t.pulse.currentRound}
+        value={currentRound > 0 ? `${currentRound}` : t.pulse.setupValue}
         detail={
           currentRound > 0
-            ? `Round ${currentRound} of ${totalRounds}`
-            : `Configure up to ${totalRounds} rounds`
+            ? t.pulse.roundOf(currentRound, totalRounds)
+            : t.pulse.configureRounds(totalRounds)
         }
         shellClassName=""
+        iconShellClassName="bg-[var(--color-icon-round-bg)] text-[var(--color-icon-round-fg)]"
         icon={<HourglassIcon className="h-5 w-5" />}
         help={{
-          label: 'How current round works',
-          title: 'Current Round',
-          body:
-            'This is the active live round. Pairings, standings, and next-round availability all use this round as the tournament desk state.',
+          label: t.pulse.currentRoundHelpLabel,
+          title: t.pulse.currentRoundHelpTitle,
+          body: t.pulse.currentRoundHelpBody,
         }}
       />
       <StatCard
-        eyebrow="Active Matches"
+        eyebrow={t.pulse.activeMatches}
         value={`${activeMatches}`}
-        detail="Boards currently on the desk"
+        detail={t.pulse.boardsOnDesk}
         shellClassName=""
+        iconShellClassName="bg-[var(--color-icon-match-bg)] text-[var(--color-icon-match-fg)]"
         icon={<span className="flex items-center"><PawnIcon className="h-5 w-5" /><PawnIcon className="-ml-1 h-5 w-5" /></span>}
         help={{
-          label: 'How active matches are counted',
-          title: 'Active Matches',
-          body:
-            'This counts non-bye pairings in the current live round. A bye is completed automatically and does not count as an active board.',
+          label: t.pulse.activeMatchesHelpLabel,
+          title: t.pulse.activeMatchesHelpTitle,
+          body: t.pulse.activeMatchesHelpBody,
         }}
       />
       <StatCard
-        eyebrow="Leader"
+        eyebrow={t.pulse.leader}
         value={leader}
-        detail={`Top score ${formatScore(leaderScore)}`}
+        detail={t.pulse.topScore(formatScore(leaderScore))}
         shellClassName=""
+        iconShellClassName="bg-[var(--color-icon-leader-bg)] text-[var(--color-icon-leader-fg)]"
         icon={<CrownIcon className="h-5 w-5" />}
         leader
         help={{
-          label: 'How leader is chosen',
-          title: 'Leader',
-          body:
-            'The leader is the current first-place player after applying the standings sort order: score, then Buchholz, then seed.',
+          label: t.pulse.leaderHelpLabel,
+          title: t.pulse.leaderHelpTitle,
+          body: t.pulse.leaderHelpBody,
         }}
       />
     </section>

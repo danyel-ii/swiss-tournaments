@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n'
+
 interface RoundNavigatorProps {
   rounds: number[]
   selectedRound: number
@@ -11,17 +13,19 @@ export function RoundNavigator({
   currentRound,
   onSelectRound,
 }: RoundNavigatorProps) {
+  const { t } = useI18n()
+
   if (rounds.length === 0) {
     return null
   }
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <section className="theme-panel rounded-3xl p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="font-display text-lg font-semibold text-slate-900">Round Archive</h2>
-          <p className="font-data text-sm text-slate-500">
-            Jump across previous pairings without changing live standings.
+          <h2 className="theme-heading font-display text-lg font-semibold">{t.rounds.archiveTitle}</h2>
+          <p className="theme-copy font-data text-sm">
+            {t.rounds.archiveSubtitle}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -36,14 +40,14 @@ export function RoundNavigator({
                 onClick={() => onSelectRound(round)}
                 className={`font-display rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                   isSelected
-                    ? 'border-sky-200 bg-sky-100 text-sky-700'
+                    ? 'border-[var(--theme-aqua)] bg-[var(--theme-aqua-soft)] text-[var(--theme-plum)]'
                     : isCurrent
-                      ? 'border-violet-200 bg-violet-100 text-violet-700'
-                      : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                      ? 'border-[var(--theme-plum)] bg-[var(--theme-plum-soft)] text-[var(--theme-plum)]'
+                      : 'border-[var(--theme-border)] bg-[var(--theme-cream)] text-[var(--theme-text-soft)] hover:border-[var(--theme-aqua)] hover:text-[var(--theme-plum)]'
                 }`}
               >
-                Round {round}
-                {isCurrent ? ' Live' : ''}
+                {t.rounds.round(round)}
+                {isCurrent ? ` ${t.common.live}` : ''}
               </button>
             )
           })}

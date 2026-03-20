@@ -4,9 +4,11 @@ import { PairingsView } from './components/PairingsView'
 import { PlayerList } from './components/PlayerList'
 import { RoundNavigator } from './components/RoundNavigator'
 import { StandingsTable } from './components/StandingsTable'
+import { StandingsFocusView } from './components/StandingsFocusView'
 import { TournamentControls } from './components/TournamentControls'
 import { TournamentHeader } from './components/TournamentHeader'
 import { TournamentPulse } from './components/TournamentPulse'
+import { useI18n } from './i18n'
 import {
   getCurrentRoundMatches,
   getRoundMatches,
@@ -21,10 +23,12 @@ import { downloadTournamentExport } from './utils/export'
 
 function App() {
   const { tournament, dispatch } = useTournament()
+  const { t } = useI18n()
   const [playerName, setPlayerName] = useState('')
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
   const [selectedRound, setSelectedRound] = useState(0)
+  const [activeView, setActiveView] = useState<'dashboard' | 'standings'>('dashboard')
 
   const standings = useMemo(
     () => getStandings(tournament.players, tournament.matches),
@@ -66,13 +70,13 @@ function App() {
   const roundsError =
     tournament.totalRounds >= 1 && tournament.totalRounds <= 20
       ? null
-      : 'Rounds must be between 1 and 20'
+      : t.controls.roundsError
 
   const handleAddPlayer = () => {
     const trimmedName = playerName.trim()
 
     if (!trimmedName) {
-      setPlayerError('Player name cannot be empty')
+      setPlayerError(t.players.errors.emptyName)
       setDuplicateWarning(null)
       return
     }
@@ -88,13 +92,13 @@ function App() {
     setPlayerName('')
     setPlayerError(null)
     setDuplicateWarning(
-      duplicateExists ? `Duplicate name warning: "${trimmedName}" already exists.` : null,
+      duplicateExists ? t.players.errors.duplicateWarning(trimmedName) : null,
     )
   }
 
   const handleStart = () => {
     if (tournament.players.length < 2) {
-      setPlayerError('Add at least 2 players to start a tournament')
+      setPlayerError(t.players.errors.minPlayers)
       return
     }
 
@@ -110,7 +114,7 @@ function App() {
   }
 
   const handleReset = () => {
-    const confirmed = window.confirm('Reset the tournament and clear saved state?')
+    const confirmed = window.confirm(t.controls.resetConfirm)
 
     if (!confirmed) {
       return
@@ -139,86 +143,123 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] px-4 py-8 text-slate-900">
+    <div className="min-h-screen px-4 py-8 text-[var(--theme-text)]">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <TournamentHeader tournament={tournament} />
 
-        <TournamentControls
-          tournament={tournament}
-          roundsError={roundsError}
-          onNameChange={(value) =>
-            dispatch({ type: 'SET_TOURNAMENT_NAME', payload: { name: value } })
-          }
-          onRoundsChange={(value) =>
-            dispatch({ type: 'SET_TOTAL_ROUNDS', payload: { totalRounds: value } })
-          }
-          onStart={handleStart}
-          onExport={() => downloadTournamentExport(tournament)}
-          onReset={handleReset}
-        />
+        <section className="theme-panel rounded-3xl p-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveView('dashboard')}
+              className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+                activeView === 'dashboard'
+                  ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
+                  : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
+              }`}
+            >
+              {t.navigation.dashboard}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('standings')}
+              className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+                activeView === 'standings'
+                  ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
+                  : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
+              }`}
+            >
+              {t.navigation.standings}
+            </button>
+          </div>
+        </section>
 
-        <TournamentPulse
-          currentRound={tournament.currentRound}
-          totalRounds={tournament.totalRounds}
-          activeMatches={currentRoundMatches.filter((match) => !match.isBye).length}
-          leader={leader?.name ?? 'TBD'}
-          leaderScore={leader?.score ?? 0}
-        />
-
-        <RoundNavigator
-          rounds={availableRounds}
-          selectedRound={viewedRound}
-          currentRound={tournament.currentRound}
-          onSelectRound={setSelectedRound}
-        />
-
-        <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
-          <PlayerList
-            players={tournament.players}
-            status={tournament.status}
-            playerName={playerName}
-            error={playerError}
-            duplicateWarning={duplicateWarning}
-            onPlayerNameChange={(value) => {
-              setPlayerName(value)
-              if (playerError) {
-                setPlayerError(null)
-              }
-            }}
-            onAddPlayer={handleAddPlayer}
-            onRemovePlayer={(playerId) =>
-              dispatch({ type: 'REMOVE_PLAYER', payload: { playerId } })
-            }
-          />
-
-          <StandingsTable
+        {activeView === 'standings' ? (
+          <StandingsFocusView
             standings={standings}
-            players={tournament.players}
-            matches={tournament.matches}
-          />
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-          <PairingsView
-            hasStarted={inProgress}
-            matches={viewedMatches}
-            players={tournament.players}
-            viewedRound={viewedRound}
-            isViewingCurrentRound={isViewingCurrentRound}
-            resultsEntered={resultsEntered}
-            resultTarget={resultTarget}
-            isRoundComplete={roundComplete}
-            onSetResult={handleSetResult}
-          />
-
-          <ActionBar
-            canGenerateNextRound={canGenerateNextRound}
-            isCompleted={completed}
             currentRound={tournament.currentRound}
             totalRounds={tournament.totalRounds}
-            onGenerateNextRound={handleGenerateNextRound}
           />
-        </div>
+        ) : (
+          <>
+            <TournamentControls
+              tournament={tournament}
+              roundsError={roundsError}
+              onNameChange={(value) =>
+                dispatch({ type: 'SET_TOURNAMENT_NAME', payload: { name: value } })
+              }
+              onRoundsChange={(value) =>
+                dispatch({ type: 'SET_TOTAL_ROUNDS', payload: { totalRounds: value } })
+              }
+              onStart={handleStart}
+              onExport={() => downloadTournamentExport(tournament)}
+              onReset={handleReset}
+            />
+
+            <TournamentPulse
+              currentRound={tournament.currentRound}
+              totalRounds={tournament.totalRounds}
+              activeMatches={currentRoundMatches.filter((match) => !match.isBye).length}
+              leader={leader?.name ?? t.common.unknown}
+              leaderScore={leader?.score ?? 0}
+            />
+
+            <RoundNavigator
+              rounds={availableRounds}
+              selectedRound={viewedRound}
+              currentRound={tournament.currentRound}
+              onSelectRound={setSelectedRound}
+            />
+
+            <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
+              <PlayerList
+                players={tournament.players}
+                status={tournament.status}
+                playerName={playerName}
+                error={playerError}
+                duplicateWarning={duplicateWarning}
+                onPlayerNameChange={(value) => {
+                  setPlayerName(value)
+                  if (playerError) {
+                    setPlayerError(null)
+                  }
+                }}
+                onAddPlayer={handleAddPlayer}
+                onRemovePlayer={(playerId) =>
+                  dispatch({ type: 'REMOVE_PLAYER', payload: { playerId } })
+                }
+              />
+
+              <StandingsTable
+                standings={standings}
+                players={tournament.players}
+                matches={tournament.matches}
+              />
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+              <PairingsView
+                hasStarted={inProgress}
+                matches={viewedMatches}
+                players={tournament.players}
+                viewedRound={viewedRound}
+                isViewingCurrentRound={isViewingCurrentRound}
+                resultsEntered={resultsEntered}
+                resultTarget={resultTarget}
+                isRoundComplete={roundComplete}
+                onSetResult={handleSetResult}
+              />
+
+              <ActionBar
+                canGenerateNextRound={canGenerateNextRound}
+                isCompleted={completed}
+                currentRound={tournament.currentRound}
+                totalRounds={tournament.totalRounds}
+                onGenerateNextRound={handleGenerateNextRound}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
