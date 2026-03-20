@@ -99,7 +99,7 @@ export function DashboardView({
         onSelectRound={onSelectRound}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr] xl:items-start">
         <PlayerList
           players={tournament.players}
           status={tournament.status}
@@ -118,7 +118,7 @@ export function DashboardView({
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr] xl:items-start">
         <PairingsView
           hasStarted={inProgress}
           matches={viewedMatches}
