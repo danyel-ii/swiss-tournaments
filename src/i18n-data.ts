@@ -180,7 +180,7 @@ export const translations: Record<Language, TranslationSet> = {
       playedBlack: 'Played Black',
     },
     header: {
-      title: 'Swiss Chess Tournament',
+      title: 'Chess Tournament (Swiss Pairings)',
       playersReady: (count) => `${count} players ready to play`,
       statusLabel: (status, currentRound, totalRounds) => {
         if (status === 'setup') {
@@ -356,7 +356,7 @@ export const translations: Record<Language, TranslationSet> = {
       playedBlack: 'Mit Schwarz gespielt',
     },
     header: {
-      title: 'Schweizer Schachturnier',
+      title: 'Schachturnier (Schweizer Paarungen)',
       playersReady: (count) => `${count} Spieler bereit`,
       statusLabel: (status, currentRound, totalRounds) => {
         if (status === 'setup') {

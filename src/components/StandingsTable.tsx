@@ -109,7 +109,8 @@ export function StandingsTable({
                   {formatScore(standing.score)}
                 </p>
                 <div className="theme-copy font-data text-right text-sm">
-                  <p>Buchholz {formatScore(standing.buchholz)}</p>
+                  <p className="font-medium">{t.standings.score} {formatScore(standing.score)}</p>
+                  <p>{t.standings.buchholz} {formatScore(standing.buchholz)}</p>
                   <p>{t.standings.seed} {standing.seed}</p>
                 </div>
               </div>
@@ -123,7 +124,7 @@ export function StandingsTable({
           <div>{t.standings.rank}</div>
           <div>{t.standings.player}</div>
           <div>{t.standings.seed}</div>
-          <div>
+          <div className="text-[var(--theme-text)]">
             <span className="inline-flex items-center gap-2">
               {t.standings.score}
               <HelpTooltip label={t.standings.scoreHelpLabel} title={t.standings.scoreHelpTitle}>
@@ -131,7 +132,7 @@ export function StandingsTable({
               </HelpTooltip>
             </span>
           </div>
-          <div>
+          <div className="font-medium text-[var(--theme-text-soft)]">
             <span className="inline-flex items-center gap-2">
               {t.standings.buchholz}
               <HelpTooltip
@@ -177,10 +178,10 @@ export function StandingsTable({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="theme-heading font-display text-2xl font-semibold">
+                      <div className="theme-heading font-display text-2xl font-bold">
                         {formatScore(standing.score)}
                       </div>
-                      <div className="font-data text-xs text-[var(--theme-text-soft)]">
+                      <div className="font-data text-xs font-semibold text-[var(--theme-text)]">
                         {t.standings.score}
                       </div>
                     </div>
@@ -198,7 +199,7 @@ export function StandingsTable({
                         <p className="font-data text-[10px] uppercase tracking-[0.16em] text-[var(--theme-text-soft)]">
                           {t.standings.buchholz}
                         </p>
-                        <p className="theme-heading font-display font-semibold">
+                        <p className="theme-copy font-data font-medium">
                           {formatScore(standing.buchholz)}
                         </p>
                       </div>
@@ -240,10 +241,10 @@ export function StandingsTable({
                         {standing.seed}
                       </span>
                     </div>
-                    <div className="theme-heading font-display font-semibold">
+                    <div className="theme-heading font-display font-bold">
                       {formatScore(standing.score)}
                     </div>
-                    <div className="theme-copy font-data">
+                    <div className="theme-copy font-data font-medium">
                       {formatScore(standing.buchholz)}
                     </div>
                     <div className="theme-copy font-data">

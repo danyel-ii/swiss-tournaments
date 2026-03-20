@@ -244,4 +244,24 @@ describe('tournament progression', () => {
 
     expect(unchanged.currentRound).toBe(1)
   })
+
+  it('awards a 1-0 result only to the white player in standings', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob']),
+      totalRounds: 1,
+    })
+    const boardOne = startedTournament.matches[0]
+
+    expect(boardOne.blackPlayerId).not.toBeNull()
+
+    const updatedTournament = setMatchResult(startedTournament, boardOne.id, '1-0')
+    const standings = getStandings(updatedTournament.players, updatedTournament.matches)
+    const whiteStanding = standings.find((entry) => entry.playerId === boardOne.whitePlayerId)
+    const blackStanding = standings.find((entry) => entry.playerId === boardOne.blackPlayerId)
+
+    expect(whiteStanding?.score).toBe(1)
+    expect(blackStanding?.score).toBe(0)
+  })
 })
