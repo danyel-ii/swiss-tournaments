@@ -119,7 +119,7 @@ export function StandingsTable({
       ) : null}
 
       <div className="mt-6 space-y-3">
-        <div className="grid grid-cols-[0.8fr_2.2fr_1fr_1fr_1.1fr_1fr_auto] gap-3 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--theme-text-soft)]">
+        <div className="hidden grid-cols-[0.8fr_2.2fr_1fr_1fr_1.1fr_1fr_auto] gap-3 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--theme-text-soft)] md:grid">
           <div>{t.standings.rank}</div>
           <div>{t.standings.player}</div>
           <div>{t.standings.seed}</div>
@@ -152,7 +152,7 @@ export function StandingsTable({
           </div>
           <div>{t.standings.details}</div>
         </div>
-          <div className="space-y-3">
+        <div className="space-y-3">
           {standings.map((standing) => {
             const isExpanded = expandedPlayerId === standing.playerId
             const history = getPlayerMatchHistory(standing.playerId, matches)
@@ -160,44 +160,106 @@ export function StandingsTable({
             return (
               <Fragment key={standing.playerId}>
                 <div
-                  className={`grid grid-cols-[0.8fr_2.2fr_1fr_1fr_1.1fr_1fr_auto] items-center gap-3 rounded-3xl px-4 py-4 ${
+                  className={`rounded-3xl px-4 py-4 ${
                     standing.rank === 1 ? 'bg-[var(--theme-red-soft)]' : 'theme-muted-panel'
                   }`}
                 >
-                  <div className="theme-heading font-display font-semibold">
-                    {standing.rank}
+                  <div className="flex items-start justify-between gap-3 md:hidden">
+                    <div className="min-w-0 flex items-center gap-3">
+                      <AvatarBadge seed={standing.seed} size="sm" />
+                      <div className="min-w-0">
+                        <p className="theme-copy font-data text-xs uppercase tracking-[0.16em]">
+                          {t.standings.rank} {standing.rank}
+                        </p>
+                        <span className="theme-heading block truncate font-display font-semibold">
+                          {standing.name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="theme-heading font-display text-2xl font-semibold">
+                        {formatScore(standing.score)}
+                      </div>
+                      <div className="font-data text-xs text-[var(--theme-text-soft)]">
+                        {t.standings.score}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <AvatarBadge seed={standing.seed} size="sm" />
-                    <span className="theme-heading font-display font-semibold">
-                      {standing.name}
-                    </span>
+
+                  <div className="mt-4 grid gap-3 text-sm md:hidden">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <p className="font-data text-[10px] uppercase tracking-[0.16em] text-[var(--theme-text-soft)]">
+                          {t.standings.seed}
+                        </p>
+                        <p className="theme-heading font-display font-semibold">{standing.seed}</p>
+                      </div>
+                      <div>
+                        <p className="font-data text-[10px] uppercase tracking-[0.16em] text-[var(--theme-text-soft)]">
+                          {t.standings.buchholz}
+                        </p>
+                        <p className="theme-heading font-display font-semibold">
+                          {formatScore(standing.buchholz)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-data text-[10px] uppercase tracking-[0.16em] text-[var(--theme-text-soft)]">
+                          {t.standings.colors}
+                        </p>
+                        <p className="theme-heading font-display font-semibold">
+                          {standing.colorHistory.join('') || '-'}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedPlayerId(isExpanded ? null : standing.playerId)
+                        }
+                        className="font-display rounded-full bg-[var(--theme-surface)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--theme-plum)] transition hover:bg-[var(--theme-aqua-soft)]"
+                      >
+                        {isExpanded ? t.common.hide : t.common.open}
+                      </button>
+                    </div>
                   </div>
-                  <div className="theme-copy font-data">
-                    <span className="inline-flex items-center gap-2">
-                      <PawnIcon className="h-4 w-4" />
-                      {standing.seed}
-                    </span>
-                  </div>
-                  <div className="theme-heading font-display font-semibold">
-                    {formatScore(standing.score)}
-                  </div>
-                  <div className="theme-copy font-data">
-                    {formatScore(standing.buchholz)}
-                  </div>
-                  <div className="theme-copy font-data">
-                    {standing.colorHistory.join('') || '-'}
-                  </div>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedPlayerId(isExpanded ? null : standing.playerId)
-                      }
-                      className="font-display rounded-full bg-[var(--theme-surface)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--theme-plum)] transition hover:bg-[var(--theme-aqua-soft)]"
-                    >
-                      {isExpanded ? t.common.hide : t.common.open}
-                    </button>
+
+                  <div className="hidden items-center gap-3 md:grid md:grid-cols-[0.8fr_2.2fr_1fr_1fr_1.1fr_1fr_auto]">
+                    <div className="theme-heading font-display font-semibold">
+                      {standing.rank}
+                    </div>
+                    <div className="min-w-0 flex items-center gap-3">
+                      <AvatarBadge seed={standing.seed} size="sm" />
+                      <span className="theme-heading truncate font-display font-semibold">
+                        {standing.name}
+                      </span>
+                    </div>
+                    <div className="theme-copy font-data">
+                      <span className="inline-flex items-center gap-2">
+                        <PawnIcon className="h-4 w-4" />
+                        {standing.seed}
+                      </span>
+                    </div>
+                    <div className="theme-heading font-display font-semibold">
+                      {formatScore(standing.score)}
+                    </div>
+                    <div className="theme-copy font-data">
+                      {formatScore(standing.buchholz)}
+                    </div>
+                    <div className="theme-copy font-data">
+                      {standing.colorHistory.join('') || '-'}
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedPlayerId(isExpanded ? null : standing.playerId)
+                        }
+                        className="font-display rounded-full bg-[var(--theme-surface)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--theme-plum)] transition hover:bg-[var(--theme-aqua-soft)]"
+                      >
+                        {isExpanded ? t.common.hide : t.common.open}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {isExpanded ? (
@@ -275,7 +337,7 @@ export function StandingsTable({
               </Fragment>
             )
           })}
-          </div>
+        </div>
       </div>
     </section>
   )

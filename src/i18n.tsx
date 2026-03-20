@@ -44,6 +44,8 @@ type TranslationSet = {
     tournamentName: string
     totalRounds: string
     roundsError: string
+    decreaseRounds: string
+    increaseRounds: string
     startTournament: string
     exportReport: string
     resetTournament: string
@@ -196,6 +198,8 @@ const translations: Record<Language, TranslationSet> = {
       tournamentName: 'Tournament name',
       totalRounds: 'Total rounds',
       roundsError: 'Rounds must be between 1 and 20',
+      decreaseRounds: 'Decrease rounds',
+      increaseRounds: 'Increase rounds',
       startTournament: 'Start Tournament',
       exportReport: 'Export Report',
       resetTournament: 'Reset Tournament',
@@ -357,6 +361,8 @@ const translations: Record<Language, TranslationSet> = {
       tournamentName: 'Turniername',
       totalRounds: 'Anzahl Runden',
       roundsError: 'Die Rundenzahl muss zwischen 1 und 20 liegen',
+      decreaseRounds: 'Runden verringern',
+      increaseRounds: 'Runden erhoehen',
       startTournament: 'Turnier starten',
       exportReport: 'Bericht exportieren',
       resetTournament: 'Turnier zuruecksetzen',

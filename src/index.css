@@ -41,6 +41,7 @@ body {
     radial-gradient(circle at top right, rgba(218, 72, 72, 0.1), transparent 24%),
     var(--theme-cream);
   color: var(--theme-text);
+  overflow-x: hidden;
 }
 
 button,
@@ -52,6 +53,7 @@ textarea {
 
 #root {
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 .font-display {

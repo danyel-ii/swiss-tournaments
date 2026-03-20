@@ -82,13 +82,13 @@ export function PlayerList({
               key={player.id}
               className="theme-muted-panel flex items-center justify-between gap-4 rounded-3xl px-4 py-3"
             >
-              <div className="flex items-center gap-3">
+              <div className="min-w-0 flex items-center gap-3">
                 <AvatarBadge seed={player.seed} />
-                <div>
-                  <p className="theme-heading font-display text-lg font-semibold">
+                <div className="min-w-0">
+                  <p className="theme-heading truncate font-display text-lg font-semibold">
                     {player.name}
                   </p>
-                  <p className="theme-copy font-data inline-flex items-center gap-2 text-sm">
+                  <p className="theme-copy font-data inline-flex max-w-full items-center gap-2 text-sm">
                     <PawnIcon className="h-4 w-4" />
                     {t.players.seed(player.seed)}
                   </p>

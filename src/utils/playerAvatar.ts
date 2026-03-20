@@ -1,44 +1,54 @@
-const avatarCatalog = [
+type AvatarIcon = 'bishop' | 'king' | 'knight' | 'pawn' | 'queen' | 'rook'
+
+interface AvatarConfig {
+  label: string
+  icon: AvatarIcon
+  background: string
+  ring: string
+  text: string
+}
+
+const avatarCatalog: AvatarConfig[] = [
   {
     label: 'Pawn',
+    icon: 'pawn',
     background: 'bg-[#d7f3f6]',
     ring: 'ring-[#76D2DB]',
-    symbol: 'P',
     text: 'text-[#36064D]',
   },
   {
     label: 'Knight',
+    icon: 'knight',
     background: 'bg-[#f6d1d1]',
     ring: 'ring-[#DA4848]',
-    symbol: 'N',
     text: 'text-[#DA4848]',
-  },
-  {
-    label: 'Rook',
-    background: 'bg-[#e4daf0]',
-    ring: 'ring-[#36064D]',
-    symbol: 'R',
-    text: 'text-[#36064D]',
   },
   {
     label: 'Bishop',
-    background: 'bg-[#f7f6e5]',
-    ring: 'ring-[#76D2DB]',
-    symbol: 'B',
+    icon: 'bishop',
+    background: 'bg-[#e4daf0]',
+    ring: 'ring-[#36064D]',
     text: 'text-[#36064D]',
   },
   {
-    label: 'King',
+    label: 'Rook',
+    icon: 'rook',
     background: 'bg-[#f7f6e5]',
-    ring: 'ring-[#DA4848]',
-    symbol: 'K',
-    text: 'text-[#DA4848]',
+    ring: 'ring-[#76D2DB]',
+    text: 'text-[#36064D]',
   },
   {
     label: 'Queen',
+    icon: 'queen',
+    background: 'bg-[#f7f6e5]',
+    ring: 'ring-[#DA4848]',
+    text: 'text-[#DA4848]',
+  },
+  {
+    label: 'King',
+    icon: 'king',
     background: 'bg-[#d7f3f6]',
     ring: 'ring-[#36064D]',
-    symbol: 'Q',
     text: 'text-[#36064D]',
   },
 ]

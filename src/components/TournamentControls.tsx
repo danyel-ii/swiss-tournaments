@@ -30,6 +30,17 @@ export function TournamentControls({
   const canExport =
     tournament.players.length > 0 || tournament.matches.length > 0
 
+  const handleRoundsInputChange = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, '')
+
+    if (!digitsOnly) {
+      onRoundsChange(0)
+      return
+    }
+
+    onRoundsChange(Number(digitsOnly))
+  }
+
   return (
     <section className="theme-panel rounded-3xl p-6">
       <div className="flex flex-col gap-4">
@@ -47,15 +58,35 @@ export function TournamentControls({
 
           <label className="theme-label flex flex-col gap-2 text-sm font-medium">
             <span className="font-display text-base font-semibold">{t.controls.totalRounds}</span>
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={tournament.totalRounds}
-              disabled={!inSetup}
-              onChange={(event) => onRoundsChange(Number(event.target.value))}
-              className="theme-input font-data rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
-            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label={t.controls.decreaseRounds}
+                disabled={!inSetup || tournament.totalRounds <= 1}
+                onClick={() => onRoundsChange(Math.max(1, tournament.totalRounds - 1))}
+                className="theme-button-aqua h-[3.125rem] w-[3.125rem] shrink-0 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={String(tournament.totalRounds)}
+                disabled={!inSetup}
+                onChange={(event) => handleRoundsInputChange(event.target.value)}
+                className="theme-input font-data min-w-0 flex-1 rounded-2xl border px-4 py-3 text-center outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <button
+                type="button"
+                aria-label={t.controls.increaseRounds}
+                disabled={!inSetup || tournament.totalRounds >= 20}
+                onClick={() => onRoundsChange(Math.min(20, tournament.totalRounds + 1))}
+                className="theme-button-aqua h-[3.125rem] w-[3.125rem] shrink-0 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed"
+              >
+                +
+              </button>
+            </div>
           </label>
         </div>
 

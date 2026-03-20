@@ -86,8 +86,8 @@ export function PairingsView({
           {t.pairings.waiting}
         </div>
       ) : (
-        <div className="theme-muted-panel mt-6 overflow-hidden rounded-3xl">
-          <table className="min-w-full text-left text-sm">
+        <div className="theme-muted-panel mt-6 overflow-x-auto rounded-3xl">
+          <table className="min-w-[38rem] text-left text-sm md:min-w-full">
             <thead className="text-[var(--theme-text-soft)]">
               <tr>
                 <th className="font-display px-4 py-3 font-semibold">{t.pairings.board}</th>

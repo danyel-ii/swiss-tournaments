@@ -56,13 +56,13 @@ export function StandingsFocusView({
           {standings.map((standing) => (
             <article
               key={standing.playerId}
-              className={`grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-3xl px-5 py-4 ${
+              className={`grid grid-cols-[auto_1fr] gap-4 rounded-3xl px-5 py-4 md:grid-cols-[auto_1fr_auto] md:items-center ${
                 standing.rank === 1
                   ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
                   : 'theme-muted-panel'
               }`}
             >
-              <div className="flex min-w-[4rem] items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <span
                   className={`font-display text-2xl font-bold tracking-[-0.04em] ${
                     standing.rank === 1 ? 'text-[var(--theme-cream)]' : 'text-[var(--theme-text)]'
@@ -90,7 +90,7 @@ export function StandingsFocusView({
                 </p>
               </div>
 
-              <div className="text-right">
+              <div className="col-span-2 text-left md:col-span-1 md:text-right">
                 <p
                   className={`font-display text-3xl font-bold tracking-[-0.05em] md:text-5xl ${
                     standing.rank === 1 ? 'text-[var(--theme-aqua)]' : 'text-[var(--theme-red)]'
