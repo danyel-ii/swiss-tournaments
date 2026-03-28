@@ -23,15 +23,20 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/pwa-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: '/logo-source.jpeg',
+            sizes: '967x1024',
+            type: 'image/jpeg',
+          },
+          {
+            src: '/logo-source.jpeg',
+            sizes: '967x1024',
+            type: 'image/jpeg',
+            purpose: 'any',
           },
           {
             src: '/pwa-icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any maskable',
           },
         ],
       },
