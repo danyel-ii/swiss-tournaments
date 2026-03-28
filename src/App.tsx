@@ -75,10 +75,11 @@ function TournamentWorkspace({
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
-  const { t } = useI18n()
+  const { language, setLanguage, t } = useI18n()
   const [playerName, setPlayerName] = useState('')
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
+  const [liveMenuOpen, setLiveMenuOpen] = useState(false)
   const [selectedRound, setSelectedRound] = useState(
     tournament.currentRound > 0 ? tournament.currentRound : 0,
   )
@@ -119,6 +120,7 @@ function TournamentWorkspace({
     isCurrentRoundComplete(tournament.matches, tournament.currentRound)
   const inProgress = hasTournamentStarted(tournament)
   const completed = hasTournamentFinished(tournament)
+  const isLiveView = activeView === 'live'
   const leader = standings[0]
   const roundsError =
     tournament.totalRounds >= 1 && tournament.totalRounds <= 20
@@ -198,7 +200,27 @@ function TournamentWorkspace({
   return (
     <div className="min-h-screen px-4 py-8 text-[var(--theme-text)]">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <TournamentHeader tournament={tournament} username={username} onLogout={onLogout} />
+        {isLiveView ? (
+          <section className="theme-panel rounded-3xl px-5 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="theme-heading truncate font-display text-2xl font-bold tracking-[-0.03em] md:text-3xl">
+                  {tournament.name}
+                </h1>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setLiveMenuOpen((current) => !current)}
+                className="rounded-full bg-[var(--theme-surface)] px-4 py-2 font-display text-sm font-semibold transition"
+              >
+                {liveMenuOpen ? t.common.hide : t.common.open} {t.common.menu}
+              </button>
+            </div>
+          </section>
+        ) : (
+          <TournamentHeader tournament={tournament} username={username} onLogout={onLogout} />
+        )}
 
         {syncError ? (
           <div className="theme-panel rounded-3xl px-6 py-4 text-sm text-[var(--theme-red)]">
@@ -206,7 +228,49 @@ function TournamentWorkspace({
           </div>
         ) : null}
 
-        <ViewTabs activeView={activeView} onSelectView={setActiveView} />
+        {isLiveView ? (
+          liveMenuOpen ? (
+            <section className="theme-panel rounded-3xl p-4">
+              <div className="space-y-4">
+                <ViewTabs
+                  activeView={activeView}
+                  onSelectView={(view) => {
+                    setActiveView(view)
+                    setLiveMenuOpen(false)
+                  }}
+                />
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="theme-copy rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm">
+                    {t.header.signedInAs(username)}
+                  </div>
+
+                  <label className="theme-copy flex items-center gap-2 text-sm">
+                    <span className="font-display font-semibold">{t.header.languageLabel}</span>
+                    <select
+                      value={language}
+                      onChange={(event) => setLanguage(event.target.value as typeof language)}
+                      className="theme-input font-data rounded-full border px-3 py-2 outline-none transition"
+                    >
+                      <option value="en">{t.common.english}</option>
+                      <option value="de">{t.common.german}</option>
+                    </select>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="font-display rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold transition"
+                  >
+                    {t.header.logout}
+                  </button>
+                </div>
+              </div>
+            </section>
+          ) : null
+        ) : (
+          <ViewTabs activeView={activeView} onSelectView={setActiveView} />
+        )}
 
         {activeView === 'tournaments' ? (
           <TournamentDirectoryView
@@ -232,7 +296,6 @@ function TournamentWorkspace({
           />
         ) : activeView === 'live' ? (
           <LiveView
-            tournamentName={tournament.name}
             currentRound={tournament.currentRound}
             totalRounds={tournament.totalRounds}
             status={tournament.status}
