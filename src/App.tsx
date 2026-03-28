@@ -1,5 +1,6 @@
 import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
+import { InstallPrompt } from './components/InstallPrompt'
 import { LoginView } from './components/LoginView'
 import { StandingsFocusView } from './components/StandingsFocusView'
 import { StatisticsView } from './components/StatisticsView'
@@ -7,6 +8,7 @@ import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
 import { ViewTabs } from './components/ViewTabs'
 import { useAuth } from './hooks/useAuth'
+import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { usePlayerLibrary } from './hooks/usePlayerLibrary'
 import { usePlayerStats } from './hooks/usePlayerStats'
 import { useI18n } from './useI18n'
@@ -295,6 +297,7 @@ function LoadingScreen({ label }: { label: string }) {
 function App() {
   const { t } = useI18n()
   const auth = useAuth()
+  const installPrompt = useInstallPrompt()
   const { tournament, tournaments, activeTournamentId, dispatch, loading, error } = useTournament(
     auth.user !== null,
   )
@@ -334,27 +337,41 @@ function App() {
   }
 
   return (
-    <TournamentWorkspace
-      username={auth.user.username}
-      key={tournament.id}
-      tournament={tournament}
-      tournaments={tournaments}
-      activeTournamentId={activeTournamentId}
-      dispatch={dispatch}
-      syncError={error}
-      onLogout={() => {
-        void auth.logout()
-      }}
-      libraryPlayers={playerLibrary.players}
-      libraryLoading={playerLibrary.loading}
-      statisticsPlayers={playerStats.players}
-      statisticsDetail={playerStats.detail}
-      statisticsLoading={playerStats.loading}
-      statisticsError={playerStats.error}
-      onSelectStatsPlayer={setSelectedStatsPlayerId}
-      activeView={activeView}
-      setActiveView={setActiveView}
-    />
+    <>
+      {installPrompt.visible ? (
+        <div className="fixed inset-x-4 bottom-4 z-50 md:hidden">
+          <InstallPrompt
+            isIosManualInstall={installPrompt.isIosManualInstall}
+            onInstall={() => {
+              void installPrompt.promptInstall()
+            }}
+            onDismiss={installPrompt.dismiss}
+          />
+        </div>
+      ) : null}
+
+      <TournamentWorkspace
+        username={auth.user.username}
+        key={tournament.id}
+        tournament={tournament}
+        tournaments={tournaments}
+        activeTournamentId={activeTournamentId}
+        dispatch={dispatch}
+        syncError={error}
+        onLogout={() => {
+          void auth.logout()
+        }}
+        libraryPlayers={playerLibrary.players}
+        libraryLoading={playerLibrary.loading}
+        statisticsPlayers={playerStats.players}
+        statisticsDetail={playerStats.detail}
+        statisticsLoading={playerStats.loading}
+        statisticsError={playerStats.error}
+        onSelectStatsPlayer={setSelectedStatsPlayerId}
+        activeView={activeView}
+        setActiveView={setActiveView}
+      />
+    </>
   )
 }
 

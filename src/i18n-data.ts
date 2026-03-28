@@ -199,6 +199,14 @@ export type TranslationSet = {
     loadingWorkspace: string
     workspaceError: (message: string) => string
   }
+  install: {
+    eyebrow: string
+    title: string
+    body: string
+    iosBody: string
+    install: string
+    dismiss: string
+  }
 }
 
 const LANGUAGE_STORAGE_KEY = 'chessTournamentLanguage'
@@ -419,7 +427,7 @@ export const translations: Record<Language, TranslationSet> = {
       eyebrow: 'Private Access',
       title: 'Sign in to tournament control',
       subtitle:
-        'This installation is restricted to the three configured organizer accounts. Authentication and saved tournament data are handled by Neon-backed server routes.',
+        'Authentication and saved tournament data are handled by Neon-backed server routes.',
       username: 'Username',
       password: 'Password',
       signIn: 'Sign In',
@@ -427,6 +435,14 @@ export const translations: Record<Language, TranslationSet> = {
       loadingSession: 'Checking session...',
       loadingWorkspace: 'Loading tournament workspace...',
       workspaceError: (message) => `Workspace sync issue: ${message}`,
+    },
+    install: {
+      eyebrow: 'Install App',
+      title: 'Add this tournament app to your phone',
+      body: 'Install it now for faster access, a full-screen experience, and an icon on your home screen.',
+      iosBody: 'To install on iPhone or iPad, tap Share in Safari and then choose “Add to Home Screen”.',
+      install: 'Install',
+      dismiss: 'Not now',
     },
   },
   de: {
@@ -651,6 +667,14 @@ export const translations: Record<Language, TranslationSet> = {
       loadingSession: 'Sitzung wird geprueft...',
       loadingWorkspace: 'Turnierbereich wird geladen...',
       workspaceError: (message) => `Problem bei der Synchronisierung: ${message}`,
+    },
+    install: {
+      eyebrow: 'App installieren',
+      title: 'Diese Turnier-App zum Startbildschirm hinzufuegen',
+      body: 'Installiere sie jetzt fuer schnelleren Zugriff, Vollbildansicht und ein eigenes Symbol auf dem Handy.',
+      iosBody: 'Auf iPhone oder iPad installierst du die App ueber Teilen in Safari und dann „Zum Home-Bildschirm“.',
+      install: 'Installieren',
+      dismiss: 'Spaeter',
     },
   },
 }

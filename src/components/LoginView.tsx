@@ -6,7 +6,7 @@ interface LoginViewProps {
   error: string | null
 }
 
-const USER_OPTIONS = ['kusselberg', 'schachmagie', 'daniel'] as const
+const USER_OPTIONS = ['kusselberg', 'schachmagie', 'danyel-ii'] as const
 
 export function LoginView({ onLogin, error }: LoginViewProps) {
   const { t } = useI18n()
