@@ -577,8 +577,7 @@ export const translations: Record<Language, TranslationSet> = {
     auth: {
       eyebrow: 'Privater Zugang',
       title: 'Bei der Turniersteuerung anmelden',
-      subtitle:
-        'Diese Installation ist auf die drei konfigurierten Organisator-Konten beschraenkt. Anmeldung und gespeicherte Turnierdaten laufen ueber serverseitige Neon-Routen.',
+      subtitle: '',
       username: 'Benutzername',
       password: 'Passwort',
       signIn: 'Anmelden',
