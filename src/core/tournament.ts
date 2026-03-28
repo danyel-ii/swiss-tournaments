@@ -1,5 +1,6 @@
 import {
   getCurrentRoundMatches,
+  getPlayersEligibleForRound,
   hasTournamentStarted,
   isCurrentRoundComplete,
 } from './ranking'
@@ -40,7 +41,7 @@ export function createDefaultTournament(options: CreateTournamentOptions = {}): 
 }
 
 export function addPlayer(tournament: Tournament, name: string): Tournament {
-  if (hasTournamentStarted(tournament)) {
+  if (tournament.status === 'completed') {
     return tournament
   }
 
@@ -56,6 +57,8 @@ export function addPlayer(tournament: Tournament, name: string): Tournament {
     id: crypto.randomUUID(),
     name: trimmedName,
     seed: nextSeed,
+    enteredRound: tournament.status === 'setup' ? 1 : tournament.currentRound + 1,
+    droppedAfterRound: null,
   }
 
   return withUpdatedTimestamp({
@@ -68,13 +71,72 @@ export function removePlayer(
   tournament: Tournament,
   playerId: string,
 ): Tournament {
-  if (hasTournamentStarted(tournament)) {
+  if (tournament.status === 'completed') {
+    return tournament
+  }
+
+  if (!hasTournamentStarted(tournament)) {
+    return withUpdatedTimestamp({
+      ...tournament,
+      players: tournament.players.filter((player) => player.id !== playerId),
+    })
+  }
+
+  const player = tournament.players.find((entry) => entry.id === playerId)
+
+  if (!player) {
+    return tournament
+  }
+
+  if (player.enteredRound > tournament.currentRound) {
+    return withUpdatedTimestamp({
+      ...tournament,
+      players: tournament.players.filter((entry) => entry.id !== playerId),
+    })
+  }
+
+  if (player.droppedAfterRound !== null) {
     return tournament
   }
 
   return withUpdatedTimestamp({
     ...tournament,
-    players: tournament.players.filter((player) => player.id !== playerId),
+    players: tournament.players.map((entry) =>
+      entry.id === playerId
+        ? {
+            ...entry,
+            droppedAfterRound: tournament.currentRound,
+          }
+        : entry,
+    ),
+  })
+}
+
+export function renamePlayer(
+  tournament: Tournament,
+  playerId: string,
+  name: string,
+): Tournament {
+  const trimmedName = name.trim()
+
+  if (!trimmedName) {
+    return tournament
+  }
+
+  if (!tournament.players.some((player) => player.id === playerId)) {
+    return tournament
+  }
+
+  return withUpdatedTimestamp({
+    ...tournament,
+    players: tournament.players.map((player) =>
+      player.id === playerId
+        ? {
+            ...player,
+            name: trimmedName,
+          }
+        : player,
+    ),
   })
 }
 
@@ -111,7 +173,9 @@ export function setTotalRounds(
 }
 
 export function startTournament(tournament: Tournament): Tournament {
-  if (hasTournamentStarted(tournament) || tournament.players.length < 2) {
+  const roundOnePlayers = getPlayersEligibleForRound(tournament.players, 1)
+
+  if (hasTournamentStarted(tournament) || roundOnePlayers.length < 2) {
     return tournament
   }
 

@@ -25,6 +25,8 @@ export type TranslationSet = {
     playersReady: (count: number) => string
     statusLabel: (status: TournamentStatus, currentRound: number, totalRounds: number) => string
     languageLabel: string
+    signedInAs: (username: string) => string
+    logout: string
   }
   navigation: {
     dashboard: string
@@ -80,12 +82,19 @@ export type TranslationSet = {
   }
   players: {
     title: string
-    subtitle: string
+    subtitle: (status: TournamentStatus) => string
     playerName: string
     addPlayer: string
     noPlayers: string
     seed: (seed: number) => string
     remove: string
+    dropNextRound: string
+    edit: string
+    save: string
+    cancel: string
+    active: string
+    joinsNextRound: (round: number) => string
+    droppedAfterRound: (round: number) => string
     errors: {
       emptyName: string
       minPlayers: string
@@ -156,6 +165,18 @@ export type TranslationSet = {
     finalRoundComplete: string
     generateNextRound: string
   }
+  auth: {
+    eyebrow: string
+    title: string
+    subtitle: string
+    username: string
+    password: string
+    signIn: string
+    signingIn: string
+    loadingSession: string
+    loadingWorkspace: string
+    workspaceError: (message: string) => string
+  }
 }
 
 const LANGUAGE_STORAGE_KEY = 'chessTournamentLanguage'
@@ -194,6 +215,8 @@ export const translations: Record<Language, TranslationSet> = {
         return `Round ${currentRound} of ${totalRounds}`
       },
       languageLabel: 'Language',
+      signedInAs: (username) => `Signed in as ${username}`,
+      logout: 'Log Out',
     },
     navigation: {
       dashboard: 'Dashboard',
@@ -252,12 +275,24 @@ export const translations: Record<Language, TranslationSet> = {
     },
     players: {
       title: 'Player Management',
-      subtitle: 'Add at least 2 players to start a tournament.',
+      subtitle: (status) =>
+        status === 'setup'
+          ? 'Add at least 2 players to start a tournament.'
+          : status === 'in_progress'
+            ? 'Renames apply immediately. New players join next round, and removals become drops after the current round.'
+            : 'Renames stay available after the tournament. Structural roster changes are locked once the event is complete.',
       playerName: 'Player name',
       addPlayer: 'Add Player',
       noPlayers: 'No players registered yet.',
       seed: (seed) => `Seed ${seed}`,
       remove: 'Remove',
+      dropNextRound: 'Drop Next Round',
+      edit: 'Edit',
+      save: 'Save',
+      cancel: 'Cancel',
+      active: 'Active',
+      joinsNextRound: (round) => `Joins in round ${round}`,
+      droppedAfterRound: (round) => `Dropped after round ${round}`,
       errors: {
         emptyName: 'Player name cannot be empty',
         minPlayers: 'Add at least 2 players to start a tournament',
@@ -336,6 +371,19 @@ export const translations: Record<Language, TranslationSet> = {
       finalRoundComplete: 'Final Round Complete',
       generateNextRound: 'Generate Next Round',
     },
+    auth: {
+      eyebrow: 'Private Access',
+      title: 'Sign in to tournament control',
+      subtitle:
+        'This installation is restricted to the three configured organizer accounts. Authentication and saved tournament data are handled by Neon-backed server routes.',
+      username: 'Username',
+      password: 'Password',
+      signIn: 'Sign In',
+      signingIn: 'Signing In...',
+      loadingSession: 'Checking session...',
+      loadingWorkspace: 'Loading tournament workspace...',
+      workspaceError: (message) => `Workspace sync issue: ${message}`,
+    },
   },
   de: {
     common: {
@@ -370,6 +418,8 @@ export const translations: Record<Language, TranslationSet> = {
         return `Runde ${currentRound} von ${totalRounds}`
       },
       languageLabel: 'Sprache',
+      signedInAs: (username) => `Angemeldet als ${username}`,
+      logout: 'Abmelden',
     },
     navigation: {
       dashboard: 'Dashboard',
@@ -428,12 +478,24 @@ export const translations: Record<Language, TranslationSet> = {
     },
     players: {
       title: 'Spielerverwaltung',
-      subtitle: 'Fuege mindestens 2 Spieler hinzu, um ein Turnier zu starten.',
+      subtitle: (status) =>
+        status === 'setup'
+          ? 'Fuege mindestens 2 Spieler hinzu, um ein Turnier zu starten.'
+          : status === 'in_progress'
+            ? 'Namensaenderungen gelten sofort. Neue Spieler steigen erst in der naechsten Runde ein, und Entfernungen werden nach der aktuellen Runde wirksam.'
+            : 'Namensaenderungen bleiben moeglich. Strukturelle Aenderungen an der Teilnehmerliste sind nach Turnierende gesperrt.',
       playerName: 'Spielername',
       addPlayer: 'Spieler hinzufuegen',
       noPlayers: 'Noch keine Spieler registriert.',
       seed: (seed) => `Setznummer ${seed}`,
       remove: 'Entfernen',
+      dropNextRound: 'Ab naechster Runde raus',
+      edit: 'Bearbeiten',
+      save: 'Speichern',
+      cancel: 'Abbrechen',
+      active: 'Aktiv',
+      joinsNextRound: (round) => `Steigt in Runde ${round} ein`,
+      droppedAfterRound: (round) => `Nach Runde ${round} ausgeschieden`,
       errors: {
         emptyName: 'Der Spielername darf nicht leer sein',
         minPlayers: 'Fuege mindestens 2 Spieler hinzu, um ein Turnier zu starten',
@@ -511,6 +573,19 @@ export const translations: Record<Language, TranslationSet> = {
       generatePrompt: 'Erzeuge die naechste Runde erst, wenn alle aktuellen Ergebnisse eingetragen sind.',
       finalRoundComplete: 'Letzte Runde abgeschlossen',
       generateNextRound: 'Naechste Runde erzeugen',
+    },
+    auth: {
+      eyebrow: 'Privater Zugang',
+      title: 'Bei der Turniersteuerung anmelden',
+      subtitle:
+        'Diese Installation ist auf die drei konfigurierten Organisator-Konten beschraenkt. Anmeldung und gespeicherte Turnierdaten laufen ueber serverseitige Neon-Routen.',
+      username: 'Benutzername',
+      password: 'Passwort',
+      signIn: 'Anmelden',
+      signingIn: 'Anmeldung laeuft...',
+      loadingSession: 'Sitzung wird geprueft...',
+      loadingWorkspace: 'Turnierbereich wird geladen...',
+      workspaceError: (message) => `Problem bei der Synchronisierung: ${message}`,
     },
   },
 }

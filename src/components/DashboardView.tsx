@@ -35,6 +35,7 @@ interface DashboardViewProps {
   onSelectRound: (round: number) => void
   onPlayerNameChange: (value: string) => void
   onAddPlayer: () => void
+  onRenamePlayer: (playerId: string, name: string) => void
   onRemovePlayer: (playerId: string) => void
   onSetResult: (matchId: string, result: ManualMatchResult) => void
   onGenerateNextRound: () => void
@@ -68,6 +69,7 @@ export function DashboardView({
   onSelectRound,
   onPlayerNameChange,
   onAddPlayer,
+  onRenamePlayer,
   onRemovePlayer,
   onSetResult,
   onGenerateNextRound,
@@ -103,11 +105,13 @@ export function DashboardView({
         <PlayerList
           players={tournament.players}
           status={tournament.status}
+          currentRound={tournament.currentRound}
           playerName={playerName}
           error={playerError}
           duplicateWarning={duplicateWarning}
           onPlayerNameChange={onPlayerNameChange}
           onAddPlayer={onAddPlayer}
+          onRenamePlayer={onRenamePlayer}
           onRemovePlayer={onRemovePlayer}
         />
 

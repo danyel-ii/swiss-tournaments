@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { getPlayerBuchholz, getPlayerScore, getStandings, isCurrentRoundComplete } from './ranking'
-import { createDefaultTournament, setMatchResult, startTournament } from './tournament'
+import {
+  addPlayer,
+  createDefaultTournament,
+  generateNextRound,
+  removePlayer,
+  renamePlayer,
+  setMatchResult,
+  startTournament,
+} from './tournament'
 import { generateRoundOnePairings, generateSwissRoundPairings } from './swissPairing'
 import type { Match, Player } from '../types/tournament'
 
@@ -9,6 +17,8 @@ function createPlayers(names: string[]): Player[] {
     id: `player-${index + 1}`,
     name,
     seed: index + 1,
+    enteredRound: 1,
+    droppedAfterRound: null,
   }))
 }
 
@@ -263,5 +273,92 @@ describe('tournament progression', () => {
 
     expect(whiteStanding?.score).toBe(1)
     expect(blackStanding?.score).toBe(0)
+  })
+
+  it('allows player renames after the tournament has started', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob']),
+      totalRounds: 2,
+    })
+
+    const renamedTournament = renamePlayer(
+      startedTournament,
+      startedTournament.players[0].id,
+      'Alicia',
+    )
+
+    expect(renamedTournament.players[0].name).toBe('Alicia')
+    expect(renamedTournament.matches).toEqual(startedTournament.matches)
+  })
+
+  it('adds late entrants to the next round only', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob', 'Carol', 'David']),
+      totalRounds: 3,
+    })
+    const withLateEntry = addPlayer(startedTournament, 'Eva')
+
+    expect(withLateEntry.players.at(-1)).toMatchObject({
+      name: 'Eva',
+      enteredRound: 2,
+      droppedAfterRound: null,
+    })
+    expect(withLateEntry.matches.some((match) => match.whitePlayerId === withLateEntry.players.at(-1)?.id)).toBe(
+      false,
+    )
+
+    const roundOneCompleted = withLateEntry.matches.reduce((tournament, match) => {
+      if (match.isBye) {
+        return tournament
+      }
+
+      return setMatchResult(tournament, match.id, '1-0')
+    }, withLateEntry)
+    const roundTwoTournament = generateNextRound(roundOneCompleted)
+    const latePlayerId = roundTwoTournament.players.at(-1)?.id
+
+    expect(roundTwoTournament.currentRound).toBe(2)
+    expect(
+      roundTwoTournament.matches.some(
+        (match) =>
+          match.round === 2 &&
+          (match.whitePlayerId === latePlayerId || match.blackPlayerId === latePlayerId),
+      ),
+    ).toBe(true)
+  })
+
+  it('drops players after the current round instead of deleting their history', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob', 'Carol', 'David']),
+      totalRounds: 3,
+    })
+    const playerToDrop = startedTournament.players[0]
+    const updatedTournament = removePlayer(startedTournament, playerToDrop.id)
+
+    expect(updatedTournament.players).toHaveLength(4)
+    expect(updatedTournament.players[0].droppedAfterRound).toBe(1)
+
+    const roundOneCompleted = updatedTournament.matches.reduce((tournament, match) => {
+      if (match.isBye) {
+        return tournament
+      }
+
+      return setMatchResult(tournament, match.id, '1-0')
+    }, updatedTournament)
+    const roundTwoTournament = generateNextRound(roundOneCompleted)
+
+    expect(
+      roundTwoTournament.matches.some(
+        (match) =>
+          match.round === 2 &&
+          (match.whitePlayerId === playerToDrop.id || match.blackPlayerId === playerToDrop.id),
+      ),
+    ).toBe(false)
   })
 })

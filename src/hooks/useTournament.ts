@@ -1,8 +1,9 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   addPlayer,
   createDefaultTournament,
   generateNextRound,
+  renamePlayer,
   removePlayer,
   resetTournament,
   setMatchResult,
@@ -12,16 +13,15 @@ import {
 } from '../core/tournament'
 import { loadTournamentCollection, saveTournamentCollection } from '../utils/storage'
 import type { ManualMatchResult, Tournament } from '../types/tournament'
+import type { TournamentCollection } from '../types/workspace'
 
-interface TournamentState {
-  activeTournamentId: string
-  tournaments: Tournament[]
-}
+type TournamentState = TournamentCollection
 
 export type TournamentAction =
   | { type: 'CREATE_TOURNAMENT'; payload?: { name?: string } }
   | { type: 'SELECT_TOURNAMENT'; payload: { tournamentId: string } }
   | { type: 'ADD_PLAYER'; payload: { name: string } }
+  | { type: 'RENAME_PLAYER'; payload: { playerId: string; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_TOTAL_ROUNDS'; payload: { totalRounds: number } }
   | { type: 'SET_TOURNAMENT_NAME'; payload: { name: string } }
@@ -66,6 +66,10 @@ function reducer(state: TournamentState, action: TournamentAction): TournamentSt
         : state
     case 'ADD_PLAYER':
       return updateActiveTournament(state, (tournament) => addPlayer(tournament, action.payload.name))
+    case 'RENAME_PLAYER':
+      return updateActiveTournament(state, (tournament) =>
+        renamePlayer(tournament, action.payload.playerId, action.payload.name),
+      )
     case 'REMOVE_PLAYER':
       return updateActiveTournament(state, (tournament) => removePlayer(tournament, action.payload.playerId))
     case 'SET_TOTAL_ROUNDS':
@@ -93,33 +97,90 @@ function reducer(state: TournamentState, action: TournamentAction): TournamentSt
   }
 }
 
-function getInitialState(): TournamentState {
-  try {
-    const collection = loadTournamentCollection()
+function createFallbackState(): TournamentState {
+  const fallbackTournament = createDefaultTournament()
 
-    return {
-      activeTournamentId: collection.activeTournamentId,
-      tournaments: collection.tournaments,
-    }
-  } catch {
-    const fallbackTournament = createDefaultTournament()
-
-    return {
-      activeTournamentId: fallbackTournament.id,
-      tournaments: [fallbackTournament],
-    }
+  return {
+    activeTournamentId: fallbackTournament.id,
+    tournaments: [fallbackTournament],
   }
 }
 
-export function useTournament() {
-  const [state, dispatch] = useReducer(reducer, undefined, getInitialState)
+export function useTournament(enabled: boolean) {
+  const [state, dispatch] = useReducer(reducer, undefined, createFallbackState)
+  const [loading, setLoading] = useState(enabled)
+  const [error, setError] = useState<string | null>(null)
+  const hydratedRef = useRef(false)
+  const lastSyncedPayloadRef = useRef<string | null>(null)
 
   useEffect(() => {
-    saveTournamentCollection({
-      activeTournamentId: state.activeTournamentId,
-      tournaments: state.tournaments,
+    if (!enabled) {
+      hydratedRef.current = false
+      lastSyncedPayloadRef.current = null
+      setLoading(false)
+      setError(null)
+      dispatch({ type: 'LOAD_TOURNAMENTS', payload: createFallbackState() })
+      return
+    }
+
+    let cancelled = false
+    setLoading(true)
+
+    void (async () => {
+      try {
+        const collection = await loadTournamentCollection()
+
+        if (cancelled) {
+          return
+        }
+
+        const nextState = {
+          activeTournamentId: collection.activeTournamentId,
+          tournaments: collection.tournaments,
+        }
+
+        hydratedRef.current = true
+        lastSyncedPayloadRef.current = JSON.stringify(nextState)
+        dispatch({ type: 'LOAD_TOURNAMENTS', payload: nextState })
+        setError(null)
+      } catch (requestError) {
+        if (!cancelled) {
+          setError(requestError instanceof Error ? requestError.message : 'Unable to load workspace')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled])
+
+  const serializedState = useMemo(
+    () =>
+      JSON.stringify({
+        activeTournamentId: state.activeTournamentId,
+        tournaments: state.tournaments,
+      } satisfies TournamentCollection),
+    [state.activeTournamentId, state.tournaments],
+  )
+
+  useEffect(() => {
+    if (!enabled || !hydratedRef.current || serializedState === lastSyncedPayloadRef.current) {
+      return
+    }
+
+    const nextCollection = JSON.parse(serializedState) as TournamentCollection
+    lastSyncedPayloadRef.current = serializedState
+
+    void saveTournamentCollection(nextCollection).catch((requestError) => {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to save workspace')
+      lastSyncedPayloadRef.current = null
     })
-  }, [state])
+  }, [enabled, serializedState])
 
   const tournament =
     state.tournaments.find((entry) => entry.id === state.activeTournamentId) ?? state.tournaments[0]
@@ -129,5 +190,7 @@ export function useTournament() {
     tournament,
     tournaments: state.tournaments,
     dispatch,
+    loading,
+    error,
   }
 }

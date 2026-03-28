@@ -12,9 +12,9 @@ const tournament: Tournament = {
   createdAt: '2026-03-12T12:00:00.000Z',
   updatedAt: '2026-03-12T14:00:00.000Z',
   players: [
-    { id: 'p1', name: 'Alice', seed: 1 },
-    { id: 'p2', name: 'Bob', seed: 2 },
-    { id: 'p3', name: 'Carol', seed: 3 },
+    { id: 'p1', name: 'Alice', seed: 1, enteredRound: 1, droppedAfterRound: null },
+    { id: 'p2', name: 'Bob', seed: 2, enteredRound: 1, droppedAfterRound: null },
+    { id: 'p3', name: 'Carol', seed: 3, enteredRound: 1, droppedAfterRound: null },
   ],
   matches: [
     {

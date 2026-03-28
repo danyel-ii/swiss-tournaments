@@ -25,6 +25,25 @@ export function hasTournamentFinished(tournament: Tournament): boolean {
   return tournament.status === 'completed'
 }
 
+export function hasPlayerEnteredByRound(player: Player, round: number): boolean {
+  return player.enteredRound <= round
+}
+
+export function isPlayerEligibleForRound(player: Player, round: number): boolean {
+  return (
+    hasPlayerEnteredByRound(player, round) &&
+    (player.droppedAfterRound === null || player.droppedAfterRound >= round)
+  )
+}
+
+export function getPlayersEnteredByRound(players: Player[], round: number): Player[] {
+  return players.filter((player) => hasPlayerEnteredByRound(player, round))
+}
+
+export function getPlayersEligibleForRound(players: Player[], round: number): Player[] {
+  return players.filter((player) => isPlayerEligibleForRound(player, round))
+}
+
 export function getCurrentRoundMatches(tournament: Tournament): Match[] {
   if (tournament.currentRound < 1) {
     return []

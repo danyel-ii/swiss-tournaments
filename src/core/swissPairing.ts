@@ -1,4 +1,10 @@
-import { getPlayerColorHistory, getStandings, hasPlayerReceivedBye } from './ranking'
+import {
+  getPlayerColorHistory,
+  getPlayersEnteredByRound,
+  getPlayersEligibleForRound,
+  getStandings,
+  hasPlayerReceivedBye,
+} from './ranking'
 import type { Match, Player, PlayerColor, PlayerStanding, Tournament } from '../types/tournament'
 
 interface PairingPlan {
@@ -332,7 +338,8 @@ export function generateSwissRoundPairings(
   round: number,
 ): Match[] {
   const standings = getStandings(players, matches)
-  const pairingPool = [...standings]
+  const eligiblePlayerIds = new Set(getPlayersEligibleForRound(players, round).map((player) => player.id))
+  const pairingPool = standings.filter((player) => eligiblePlayerIds.has(player.playerId))
   let byePlayer: PlayerStanding | null = null
 
   if (pairingPool.length % 2 === 1) {
@@ -374,11 +381,11 @@ export function generateSwissRoundPairings(
 
 export function generatePairings(tournament: Tournament): Match[] {
   if (tournament.currentRound === 0) {
-    return generateRoundOnePairings(tournament.players)
+    return generateRoundOnePairings(getPlayersEligibleForRound(tournament.players, 1))
   }
 
   return generateSwissRoundPairings(
-    tournament.players,
+    getPlayersEnteredByRound(tournament.players, tournament.currentRound + 1),
     tournament.matches,
     tournament.currentRound + 1,
   )

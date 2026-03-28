@@ -1,4 +1,4 @@
-import { getRoundMatches, getStandings } from '../core/ranking'
+import { getPlayersEnteredByRound, getRoundMatches, getStandings } from '../core/ranking'
 import type { Match, Player, Tournament } from '../types/tournament'
 import { formatDateTime, formatScore, slugifyFileName } from './format'
 
@@ -32,7 +32,10 @@ function buildRegistrationSection(players: Player[]): string {
 }
 
 function buildStandingsSection(tournament: Tournament): string {
-  const standings = getStandings(tournament.players, tournament.matches)
+  const standings = getStandings(
+    getPlayersEnteredByRound(tournament.players, tournament.currentRound),
+    tournament.matches,
+  )
   const rows = standings
     .map(
       (standing) =>
@@ -51,7 +54,10 @@ function buildStandingsSection(tournament: Tournament): string {
 }
 
 function buildPlayerDetailSection(tournament: Tournament): string {
-  const standings = getStandings(tournament.players, tournament.matches)
+  const standings = getStandings(
+    getPlayersEnteredByRound(tournament.players, tournament.currentRound),
+    tournament.matches,
+  )
   const blocks = standings.map((standing) => {
     const playerMatches = tournament.matches
       .filter(

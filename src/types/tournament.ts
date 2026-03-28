@@ -8,6 +8,8 @@ export interface Player {
   id: string
   name: string
   seed: number
+  enteredRound: number
+  droppedAfterRound: number | null
 }
 
 export interface Match {

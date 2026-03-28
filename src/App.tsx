@@ -1,12 +1,15 @@
 import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
+import { LoginView } from './components/LoginView'
 import { StandingsFocusView } from './components/StandingsFocusView'
 import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
 import { ViewTabs } from './components/ViewTabs'
+import { useAuth } from './hooks/useAuth'
 import { useI18n } from './useI18n'
 import {
   getCurrentRoundMatches,
+  getPlayersEnteredByRound,
   getRoundMatches,
   getStandings,
   hasTournamentFinished,
@@ -19,19 +22,25 @@ import type { ManualMatchResult } from './types/tournament'
 import { downloadTournamentExport } from './utils/export'
 
 interface TournamentWorkspaceProps {
+  username: string
   tournament: Tournament
   tournaments: Tournament[]
   activeTournamentId: string
   dispatch: Dispatch<TournamentAction>
+  syncError: string | null
+  onLogout: () => void
   activeView: 'dashboard' | 'standings' | 'tournaments'
   setActiveView: (view: 'dashboard' | 'standings' | 'tournaments') => void
 }
 
 function TournamentWorkspace({
+  username,
   tournament,
   tournaments,
   activeTournamentId,
   dispatch,
+  syncError,
+  onLogout,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -44,8 +53,8 @@ function TournamentWorkspace({
   )
 
   const standings = useMemo(
-    () => getStandings(tournament.players, tournament.matches),
-    [tournament.matches, tournament.players],
+    () => getStandings(getPlayersEnteredByRound(tournament.players, tournament.currentRound), tournament.matches),
+    [tournament.currentRound, tournament.matches, tournament.players],
   )
   const currentRoundMatches = useMemo(
     () => getCurrentRoundMatches(tournament),
@@ -158,7 +167,13 @@ function TournamentWorkspace({
   return (
     <div className="min-h-screen px-4 py-8 text-[var(--theme-text)]">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <TournamentHeader tournament={tournament} />
+        <TournamentHeader tournament={tournament} username={username} onLogout={onLogout} />
+
+        {syncError ? (
+          <div className="theme-panel rounded-3xl px-6 py-4 text-sm text-[var(--theme-red)]">
+            {t.auth.workspaceError(syncError)}
+          </div>
+        ) : null}
 
         <ViewTabs activeView={activeView} onSelectView={setActiveView} />
 
@@ -219,6 +234,9 @@ function TournamentWorkspace({
               }
             }}
             onAddPlayer={handleAddPlayer}
+            onRenamePlayer={(playerId, name) =>
+              dispatch({ type: 'RENAME_PLAYER', payload: { playerId, name } })
+            }
             onRemovePlayer={(playerId) =>
               dispatch({ type: 'REMOVE_PLAYER', payload: { playerId } })
             }
@@ -231,17 +249,61 @@ function TournamentWorkspace({
   )
 }
 
+function LoadingScreen({ label }: { label: string }) {
+  return (
+    <div className="min-h-screen px-4 py-8 text-[var(--theme-text)]">
+      <div className="mx-auto flex min-h-[80vh] max-w-xl items-center justify-center">
+        <section className="theme-panel w-full rounded-[2rem] p-8 text-center">
+          <p className="theme-copy font-data text-base">{label}</p>
+        </section>
+      </div>
+    </div>
+  )
+}
+
 function App() {
-  const { tournament, tournaments, activeTournamentId, dispatch } = useTournament()
+  const { t } = useI18n()
+  const auth = useAuth()
+  const { tournament, tournaments, activeTournamentId, dispatch, loading, error } = useTournament(
+    auth.user !== null,
+  )
   const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments'>('dashboard')
+
+  if (auth.loading) {
+    return <LoadingScreen label={t.auth.loadingSession} />
+  }
+
+  if (!auth.user) {
+    return (
+      <LoginView
+        error={auth.error}
+        onLogin={async (username, password) => {
+          try {
+            await auth.login(username, password)
+          } catch (loginError) {
+            auth.setError(loginError instanceof Error ? loginError.message : 'Unable to sign in')
+          }
+        }}
+      />
+    )
+  }
+
+  if (loading) {
+    return <LoadingScreen label={t.auth.loadingWorkspace} />
+  }
 
   return (
     <TournamentWorkspace
+      username={auth.user.username}
       key={tournament.id}
       tournament={tournament}
       tournaments={tournaments}
       activeTournamentId={activeTournamentId}
       dispatch={dispatch}
+      syncError={error}
+      onLogout={() => {
+        void auth.logout()
+      }}
       activeView={activeView}
       setActiveView={setActiveView}
     />
