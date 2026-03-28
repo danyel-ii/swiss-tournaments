@@ -212,9 +212,14 @@ function TournamentWorkspace({
               <button
                 type="button"
                 onClick={() => setLiveMenuOpen((current) => !current)}
-                className="rounded-full bg-[var(--theme-surface)] px-4 py-2 font-display text-sm font-semibold transition"
+                aria-label={liveMenuOpen ? t.common.hide : t.common.open}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--theme-surface)] transition"
               >
-                {liveMenuOpen ? t.common.hide : t.common.open} {t.common.menu}
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-0.5 w-5 rounded-full bg-[var(--theme-text)]" />
+                  <span className="block h-0.5 w-5 rounded-full bg-[var(--theme-text)]" />
+                  <span className="block h-0.5 w-5 rounded-full bg-[var(--theme-text)]" />
+                </span>
               </button>
             </div>
           </section>

@@ -6,7 +6,6 @@ export type TranslationSet = {
   common: {
     english: string
     german: string
-    menu: string
     bye: string
     unknown: string
     live: string
@@ -231,7 +230,6 @@ export const translations: Record<Language, TranslationSet> = {
     common: {
       english: 'English',
       german: 'German',
-      menu: 'Menu',
       bye: 'BYE',
       unknown: 'Unknown',
       live: 'Live',
@@ -484,7 +482,6 @@ export const translations: Record<Language, TranslationSet> = {
     common: {
       english: 'Englisch',
       german: 'Deutsch',
-      menu: 'Menue',
       bye: 'SPIELFREI',
       unknown: 'Unbekannt',
       live: 'Live',
