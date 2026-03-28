@@ -36,9 +36,9 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('live')}
-          className={`theme-button-retro rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`theme-button-live rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
             activeView === 'live'
-              ? 'theme-button-retro-active'
+              ? 'theme-button-live-active'
               : ''
           }`}
         >
