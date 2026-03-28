@@ -9,7 +9,17 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'logo-source.jpeg', 'pwa-icon.svg'],
+      includeAssets: [
+        'favicon.ico',
+        'favicon-16.png',
+        'favicon-32.png',
+        'favicon-48.png',
+        'icons.svg',
+        'logo-source.jpeg',
+        'apple-touch-icon.png',
+        'pwa-192.png',
+        'pwa-512.png',
+      ],
       manifest: {
         id: '/',
         name: 'Chess Tournament (Swiss Pairings)',
@@ -23,20 +33,15 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/logo-source.jpeg',
-            sizes: '967x1024',
-            type: 'image/jpeg',
+            src: '/pwa-192.png',
+            sizes: '192x192',
+            type: 'image/png',
           },
           {
-            src: '/logo-source.jpeg',
-            sizes: '967x1024',
-            type: 'image/jpeg',
-            purpose: 'any',
-          },
-          {
-            src: '/pwa-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: '/pwa-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
           },
         ],
       },
