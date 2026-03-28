@@ -14,6 +14,7 @@ export function usePlayerStats(
   const [players, setPlayers] = useState<PlayerStatsSummary[]>([])
   const [detail, setDetail] = useState<PlayerStatsDetail | null>(null)
   const [loading, setLoading] = useState(enabled)
+  const [mutating, setMutating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -82,10 +83,39 @@ export function usePlayerStats(
     }
   }, [enabled, players, selectedPlayerId])
 
+  const deletePlayer = async (playerId: string) => {
+    setMutating(true)
+
+    try {
+      await apiRequest<{ ok: true }>(
+        `/api/player-stats?playerId=${encodeURIComponent(playerId)}`,
+        {
+          method: 'DELETE',
+        },
+      )
+
+      const nextPlayers = players.filter((player) => player.playerId !== playerId)
+      setPlayers(nextPlayers)
+
+      if (detail?.summary.playerId === playerId) {
+        setDetail(null)
+      }
+
+      setError(null)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to delete player stats')
+      throw requestError
+    } finally {
+      setMutating(false)
+    }
+  }
+
   return {
     players,
     detail,
     loading,
+    mutating,
     error,
+    deletePlayer,
   }
 }

@@ -471,3 +471,52 @@ export async function getPlayerStatsDetail(
     ),
   }
 }
+
+export async function deletePlayerStats(
+  username: AllowedUsername,
+  playerId: string,
+): Promise<boolean> {
+  const existing = (await sql`
+    select id
+    from player_library
+    where username = ${username}
+      and id = ${playerId}
+    limit 1
+  `) as Array<{ id: string }>
+
+  if (!existing[0]) {
+    return false
+  }
+
+  await sql`
+    update tournament_match_entries
+    set
+      white_library_player_id = case
+        when white_library_player_id = ${playerId} then null
+        else white_library_player_id
+      end,
+      black_library_player_id = case
+        when black_library_player_id = ${playerId} then null
+        else black_library_player_id
+      end
+    where username = ${username}
+      and (
+        white_library_player_id = ${playerId}
+        or black_library_player_id = ${playerId}
+      )
+  `
+
+  await sql`
+    delete from tournament_player_entries
+    where username = ${username}
+      and library_player_id = ${playerId}
+  `
+
+  await sql`
+    delete from player_library
+    where username = ${username}
+      and id = ${playerId}
+  `
+
+  return true
+}

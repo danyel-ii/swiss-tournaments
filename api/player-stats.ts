@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
 import { sendJson, sendMethodNotAllowed, setNoStore } from '../server/http.js'
-import { getPlayerStatsDetail, listPlayerStats } from '../server/library.js'
+import { deletePlayerStats, getPlayerStatsDetail, listPlayerStats } from '../server/library.js'
 
 export default async function handler(
   request: VercelRequest,
@@ -14,13 +14,30 @@ export default async function handler(
     return
   }
 
-  if (request.method !== 'GET') {
-    sendMethodNotAllowed(response, ['GET'])
+  const playerId =
+    typeof request.query.playerId === 'string' ? request.query.playerId : null
+
+  if (request.method === 'DELETE') {
+    if (!playerId) {
+      sendJson(response, 400, { error: 'playerId is required' })
+      return
+    }
+
+    const deleted = await deletePlayerStats(username, playerId)
+
+    if (!deleted) {
+      sendJson(response, 404, { error: 'Player not found' })
+      return
+    }
+
+    sendJson(response, 200, { ok: true })
     return
   }
 
-  const playerId =
-    typeof request.query.playerId === 'string' ? request.query.playerId : null
+  if (request.method !== 'GET') {
+    sendMethodNotAllowed(response, ['GET', 'DELETE'])
+    return
+  }
 
   if (playerId) {
     const detail = await getPlayerStatsDetail(username, playerId)

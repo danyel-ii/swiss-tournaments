@@ -7,16 +7,20 @@ interface StatisticsViewProps {
   players: PlayerStatsSummary[]
   detail: PlayerStatsDetail | null
   loading: boolean
+  deleting: boolean
   error: string | null
-  onSelectPlayer: (playerId: string) => void
+  onSelectPlayer: (playerId: string | null) => void
+  onDeletePlayer: (playerId: string) => Promise<void>
 }
 
 export function StatisticsView({
   players,
   detail,
   loading,
+  deleting,
   error,
   onSelectPlayer,
+  onDeletePlayer,
 }: StatisticsViewProps) {
   const { t } = useI18n()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
@@ -131,9 +135,35 @@ export function StatisticsView({
                 </div>
 
                 <div className="theme-muted-panel rounded-3xl px-5 py-4">
-                  <h3 className="theme-heading font-display text-2xl font-semibold">
-                    {t.statistics.historyTitle}
-                  </h3>
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <h3 className="theme-heading font-display text-2xl font-semibold">
+                      {t.statistics.historyTitle}
+                    </h3>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => {
+                        const nextSelected =
+                          players.find((entry) => entry.playerId !== selectedSummary.playerId)?.playerId ??
+                          null
+                        const confirmed = window.confirm(
+                          t.statistics.deletePlayerConfirm(selectedSummary.name),
+                        )
+
+                        if (!confirmed) {
+                          return
+                        }
+
+                        void onDeletePlayer(selectedSummary.playerId).then(() => {
+                          setSelectedPlayerId(nextSelected)
+                          onSelectPlayer(nextSelected)
+                        })
+                      }}
+                      className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {t.statistics.deletePlayer}
+                    </button>
+                  </div>
 
                   {detail?.tournaments.length ? (
                     <div className="mt-4 space-y-3">

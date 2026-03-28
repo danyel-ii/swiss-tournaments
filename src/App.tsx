@@ -44,8 +44,10 @@ interface TournamentWorkspaceProps {
   statisticsPlayers: ReturnType<typeof usePlayerStats>['players']
   statisticsDetail: ReturnType<typeof usePlayerStats>['detail']
   statisticsLoading: boolean
+  statisticsDeleting: boolean
   statisticsError: string | null
-  onSelectStatsPlayer: (playerId: string) => void
+  onSelectStatsPlayer: (playerId: string | null) => void
+  onDeleteStatsPlayer: (playerId: string) => Promise<void>
   activeView: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'
   setActiveView: (view: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics') => void
 }
@@ -66,8 +68,10 @@ function TournamentWorkspace({
   statisticsPlayers,
   statisticsDetail,
   statisticsLoading,
+  statisticsDeleting,
   statisticsError,
   onSelectStatsPlayer,
+  onDeleteStatsPlayer,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -253,8 +257,10 @@ function TournamentWorkspace({
             players={statisticsPlayers}
             detail={statisticsDetail}
             loading={statisticsLoading}
+            deleting={statisticsDeleting}
             error={statisticsError}
             onSelectPlayer={onSelectStatsPlayer}
+            onDeletePlayer={onDeleteStatsPlayer}
           />
         ) : (
           <DashboardView
@@ -411,8 +417,10 @@ function App() {
         statisticsPlayers={playerStats.players}
         statisticsDetail={playerStats.detail}
         statisticsLoading={playerStats.loading}
+        statisticsDeleting={playerStats.mutating}
         statisticsError={playerStats.error}
         onSelectStatsPlayer={setSelectedStatsPlayerId}
+        onDeleteStatsPlayer={playerStats.deletePlayer}
         activeView={activeView}
         setActiveView={setActiveView}
       />
