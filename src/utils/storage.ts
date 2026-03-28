@@ -11,3 +11,20 @@ export async function saveTournamentCollection(collection: TournamentCollection)
     body: JSON.stringify(collection),
   })
 }
+
+export async function deleteTournamentCollectionTournament(
+  tournamentId: string,
+): Promise<TournamentCollection> {
+  return apiRequest<TournamentCollection>(
+    `/api/workspace?tournamentId=${encodeURIComponent(tournamentId)}`,
+    {
+      method: 'DELETE',
+    },
+  )
+}
+
+export async function clearAllWorkspaceData(): Promise<TournamentCollection> {
+  return apiRequest<TournamentCollection>('/api/workspace?scope=all', {
+    method: 'DELETE',
+  })
+}

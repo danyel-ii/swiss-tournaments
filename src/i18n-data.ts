@@ -31,14 +31,26 @@ export type TranslationSet = {
   navigation: {
     dashboard: string
     tournaments: string
+    live: string
     standings: string
     statistics: string
+  }
+  live: {
+    title: string
+    subtitle: string
+    currentRound: (currentRound: number, totalRounds: number) => string
+    resultsEntered: (entered: number, target: number) => string
   }
   tournaments: {
     directoryEyebrow: string
     title: string
     subtitle: (count: number) => string
     createTournament: string
+    deleteTournament: string
+    deleteTournamentConfirm: (name: string) => string
+    deleteAllData: string
+    deleteAllDataConfirm: string
+    deleteAllDataHelp: string
     active: string
     openTournament: string
     openCurrent: string
@@ -251,14 +263,30 @@ export const translations: Record<Language, TranslationSet> = {
     navigation: {
       dashboard: 'Dashboard',
       tournaments: 'Tournaments',
+      live: 'Live View',
       standings: 'Standings',
       statistics: 'Statistics',
+    },
+    live: {
+      title: 'Live Round Desk',
+      subtitle: 'Only the current round, result entry, and next-round action for fast mobile use.',
+      currentRound: (currentRound, totalRounds) =>
+        currentRound > 0 ? `Round ${currentRound} of ${totalRounds}` : 'Tournament setup',
+      resultsEntered: (entered, target) => `${entered} of ${target} live results entered`,
     },
     tournaments: {
       directoryEyebrow: 'Multi Swiss',
       title: 'Tournament Directory',
       subtitle: (count) => `${count} tournament${count === 1 ? '' : 's'} saved in this browser`,
       createTournament: 'Create Tournament',
+      deleteTournament: 'Delete Tournament',
+      deleteTournamentConfirm: (name) =>
+        `Delete "${name}" from the active tournament workspace? Historical player statistics stay available until explicitly deleted.`,
+      deleteAllData: 'Delete All Data',
+      deleteAllDataConfirm:
+        'Delete all saved tournaments, player library entries, and projected statistics for this account?',
+      deleteAllDataHelp:
+        'This clears all saved tournaments plus the derived player statistics for the signed-in account.',
       active: 'Active',
       openTournament: 'Open Tournament',
       openCurrent: 'Continue',
@@ -484,14 +512,31 @@ export const translations: Record<Language, TranslationSet> = {
     navigation: {
       dashboard: 'Dashboard',
       tournaments: 'Turniere',
+      live: 'Live Ansicht',
       standings: 'Tabelle',
       statistics: 'Statistik',
+    },
+    live: {
+      title: 'Live-Rundenansicht',
+      subtitle:
+        'Nur die aktuelle Runde, Ergebniseingabe und der Knopf fuer die naechste Runde fuer einen schnellen mobilen Ablauf.',
+      currentRound: (currentRound, totalRounds) =>
+        currentRound > 0 ? `Runde ${currentRound} von ${totalRounds}` : 'Turnier in Einrichtung',
+      resultsEntered: (entered, target) => `${entered} von ${target} Live-Ergebnissen erfasst`,
     },
     tournaments: {
       directoryEyebrow: 'Multi Swiss',
       title: 'Turnierliste',
       subtitle: (count) => `${count} Turniere in diesem Browser gespeichert`,
       createTournament: 'Turnier erstellen',
+      deleteTournament: 'Turnier loeschen',
+      deleteTournamentConfirm: (name) =>
+        `Turnier "${name}" aus dem aktiven Turnierbereich loeschen? Historische Spielerstatistiken bleiben erhalten, bis sie ausdruecklich geloescht werden.`,
+      deleteAllData: 'Alle Daten loeschen',
+      deleteAllDataConfirm:
+        'Alle gespeicherten Turniere, Bibliothekseintraege und abgeleiteten Statistiken fuer dieses Konto loeschen?',
+      deleteAllDataHelp:
+        'Das entfernt alle gespeicherten Turniere und die daraus berechneten Spielerstatistiken des angemeldeten Kontos.',
       active: 'Aktiv',
       openTournament: 'Turnier oeffnen',
       openCurrent: 'Weiter',

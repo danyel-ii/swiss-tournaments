@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Tournament } from '../types/tournament'
 import { useI18n } from '../useI18n'
 
@@ -21,6 +22,7 @@ export function TournamentControls({
   onReset,
 }: TournamentControlsProps) {
   const { t } = useI18n()
+  const [draftName, setDraftName] = useState(tournament.name)
   const inSetup = tournament.status === 'setup'
   const canStart =
     inSetup &&
@@ -49,9 +51,15 @@ export function TournamentControls({
             <span className="font-display text-base font-semibold">{t.controls.tournamentName}</span>
             <input
               type="text"
-              value={tournament.name}
+              value={draftName}
               disabled={!inSetup}
-              onChange={(event) => onNameChange(event.target.value)}
+              onChange={(event) => setDraftName(event.target.value)}
+              onBlur={() => onNameChange(draftName)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur()
+                }
+              }}
               className="theme-input font-data rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>

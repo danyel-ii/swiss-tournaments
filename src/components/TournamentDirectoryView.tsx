@@ -6,15 +6,21 @@ import type { Tournament } from '../types/tournament'
 interface TournamentDirectoryViewProps {
   tournaments: Tournament[]
   activeTournamentId: string
+  disabled: boolean
   onCreateTournament: () => void
   onOpenTournament: (tournamentId: string) => void
+  onDeleteTournament: (tournamentId: string) => Promise<void>
+  onClearAllData: () => Promise<void>
 }
 
 export function TournamentDirectoryView({
   tournaments,
   activeTournamentId,
+  disabled,
   onCreateTournament,
   onOpenTournament,
+  onDeleteTournament,
+  onClearAllData,
 }: TournamentDirectoryViewProps) {
   const { t } = useI18n()
   const orderedTournaments = useMemo(
@@ -43,10 +49,33 @@ export function TournamentDirectoryView({
         <button
           type="button"
           onClick={onCreateTournament}
-          className="theme-button-plum rounded-full px-5 py-3 font-display text-sm font-semibold transition"
+          disabled={disabled}
+          className="theme-button-plum rounded-full px-5 py-3 font-display text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t.tournaments.createTournament}
         </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            const confirmed = window.confirm(t.tournaments.deleteAllDataConfirm)
+
+            if (!confirmed) {
+              return
+            }
+
+            void onClearAllData()
+          }}
+          className="rounded-full bg-[var(--theme-red-soft)] px-5 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {t.tournaments.deleteAllData}
+        </button>
+        <p className="theme-copy max-w-2xl self-center font-data text-sm">
+          {t.tournaments.deleteAllDataHelp}
+        </p>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -97,13 +126,32 @@ export function TournamentDirectoryView({
                 {t.tournaments.updatedAt(formatDateTime(tournament.updatedAt))}
               </p>
 
-              <button
-                type="button"
-                onClick={() => onOpenTournament(tournament.id)}
-                className="theme-button-aqua mt-5 rounded-full px-4 py-3 font-display text-sm font-semibold transition"
-              >
-                {isActive ? t.tournaments.openCurrent : t.tournaments.openTournament}
-              </button>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onOpenTournament(tournament.id)}
+                  className="theme-button-aqua rounded-full px-4 py-3 font-display text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isActive ? t.tournaments.openCurrent : t.tournaments.openTournament}
+                </button>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => {
+                    const confirmed = window.confirm(t.tournaments.deleteTournamentConfirm(tournament.name))
+
+                    if (!confirmed) {
+                      return
+                    }
+
+                    void onDeleteTournament(tournament.id)
+                  }}
+                  className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {t.tournaments.deleteTournament}
+                </button>
+              </div>
             </article>
           )
         })}

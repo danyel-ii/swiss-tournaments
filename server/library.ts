@@ -72,21 +72,24 @@ export async function syncWorkspaceProjection(
   username: AllowedUsername,
   collection: TournamentCollection,
 ): Promise<void> {
-  await sql`
-    delete from tournament_match_entries
-    where username = ${username}
-  `
-  await sql`
-    delete from tournament_player_entries
-    where username = ${username}
-  `
-  await sql`
-    delete from tournament_records
-    where username = ${username}
-  `
-
   for (const tournament of collection.tournaments) {
     const libraryIdByTournamentPlayerId = new Map<string, string>()
+
+    await sql`
+      delete from tournament_match_entries
+      where username = ${username}
+        and tournament_id = ${tournament.id}
+    `
+    await sql`
+      delete from tournament_player_entries
+      where username = ${username}
+        and tournament_id = ${tournament.id}
+    `
+    await sql`
+      delete from tournament_records
+      where username = ${username}
+        and tournament_id = ${tournament.id}
+    `
 
     await sql`
       insert into tournament_records (
@@ -343,13 +346,15 @@ export async function listPlayerStats(
     summary.lastPlayedAt = lastPlayedByPlayerId.get(summary.playerId) ?? null
   }
 
-  return [...summaries.values()].sort((left, right) => {
+  return [...summaries.values()]
+    .filter((summary) => summary.tournamentsPlayed > 0)
+    .sort((left, right) => {
     if (left.totalScore !== right.totalScore) {
       return right.totalScore - left.totalScore
     }
 
     return left.name.localeCompare(right.name)
-  })
+    })
 }
 
 export async function getPlayerStatsDetail(

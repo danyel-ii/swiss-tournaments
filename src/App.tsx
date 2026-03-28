@@ -1,6 +1,7 @@
 import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
 import { InstallPrompt } from './components/InstallPrompt'
+import { LiveView } from './components/LiveView'
 import { LoginView } from './components/LoginView'
 import { StandingsFocusView } from './components/StandingsFocusView'
 import { StatisticsView } from './components/StatisticsView'
@@ -34,7 +35,10 @@ interface TournamentWorkspaceProps {
   activeTournamentId: string
   dispatch: Dispatch<TournamentAction>
   syncError: string | null
+  isMutatingWorkspace: boolean
   onLogout: () => void
+  onDeleteTournament: (tournamentId: string) => Promise<void>
+  onClearAllData: () => Promise<void>
   libraryPlayers: LibraryPlayer[]
   libraryLoading: boolean
   statisticsPlayers: ReturnType<typeof usePlayerStats>['players']
@@ -42,8 +46,8 @@ interface TournamentWorkspaceProps {
   statisticsLoading: boolean
   statisticsError: string | null
   onSelectStatsPlayer: (playerId: string) => void
-  activeView: 'dashboard' | 'standings' | 'tournaments' | 'statistics'
-  setActiveView: (view: 'dashboard' | 'standings' | 'tournaments' | 'statistics') => void
+  activeView: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'
+  setActiveView: (view: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics') => void
 }
 
 function TournamentWorkspace({
@@ -53,7 +57,10 @@ function TournamentWorkspace({
   activeTournamentId,
   dispatch,
   syncError,
+  isMutatingWorkspace,
   onLogout,
+  onDeleteTournament,
+  onClearAllData,
   libraryPlayers,
   libraryLoading,
   statisticsPlayers,
@@ -201,6 +208,7 @@ function TournamentWorkspace({
           <TournamentDirectoryView
             tournaments={tournaments}
             activeTournamentId={activeTournamentId}
+            disabled={isMutatingWorkspace}
             onCreateTournament={() => {
               dispatch({ type: 'CREATE_TOURNAMENT' })
               setActiveView('dashboard')
@@ -209,6 +217,30 @@ function TournamentWorkspace({
               dispatch({ type: 'SELECT_TOURNAMENT', payload: { tournamentId } })
               setActiveView('dashboard')
             }}
+            onDeleteTournament={async (tournamentId) => {
+              await onDeleteTournament(tournamentId)
+              setActiveView('tournaments')
+            }}
+            onClearAllData={async () => {
+              await onClearAllData()
+              setActiveView('dashboard')
+            }}
+          />
+        ) : activeView === 'live' ? (
+          <LiveView
+            tournamentName={tournament.name}
+            currentRound={tournament.currentRound}
+            totalRounds={tournament.totalRounds}
+            status={tournament.status}
+            matches={currentRoundMatches}
+            players={tournament.players}
+            resultsEntered={resultsEntered}
+            resultTarget={resultTarget}
+            roundComplete={roundComplete}
+            canGenerateNextRound={canGenerateNextRound}
+            completed={completed}
+            onSetResult={handleSetResult}
+            onGenerateNextRound={handleGenerateNextRound}
           />
         ) : activeView === 'standings' ? (
           <StandingsFocusView
@@ -298,10 +330,20 @@ function App() {
   const { t } = useI18n()
   const auth = useAuth()
   const installPrompt = useInstallPrompt()
-  const { tournament, tournaments, activeTournamentId, dispatch, loading, error } = useTournament(
+  const {
+    tournament,
+    tournaments,
+    activeTournamentId,
+    dispatch,
+    deleteTournament,
+    clearAllData,
+    loading,
+    mutating,
+    error,
+  } = useTournament(
     auth.user !== null,
   )
-  const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments' | 'statistics'>('dashboard')
+  const [activeView, setActiveView] = useState<'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'>('dashboard')
   const [selectedStatsPlayerId, setSelectedStatsPlayerId] = useState<string | null>(null)
   const workspaceRefreshKey = useMemo(
     () =>
@@ -358,9 +400,12 @@ function App() {
         activeTournamentId={activeTournamentId}
         dispatch={dispatch}
         syncError={error}
+        isMutatingWorkspace={mutating}
         onLogout={() => {
           void auth.logout()
         }}
+        onDeleteTournament={deleteTournament}
+        onClearAllData={clearAllData}
         libraryPlayers={playerLibrary.players}
         libraryLoading={playerLibrary.loading}
         statisticsPlayers={playerStats.players}

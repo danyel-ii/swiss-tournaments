@@ -11,7 +11,12 @@ import {
   setTournamentName,
   startTournament,
 } from '../core/tournament'
-import { loadTournamentCollection, saveTournamentCollection } from '../utils/storage'
+import {
+  clearAllWorkspaceData,
+  deleteTournamentCollectionTournament,
+  loadTournamentCollection,
+  saveTournamentCollection,
+} from '../utils/storage'
 import type { ManualMatchResult, Tournament } from '../types/tournament'
 import type { TournamentCollection } from '../types/workspace'
 
@@ -20,6 +25,7 @@ type TournamentState = TournamentCollection
 export type TournamentAction =
   | { type: 'CREATE_TOURNAMENT'; payload?: { name?: string } }
   | { type: 'SELECT_TOURNAMENT'; payload: { tournamentId: string } }
+  | { type: 'DELETE_TOURNAMENT'; payload: { tournamentId: string } }
   | { type: 'ADD_PLAYER'; payload: { name: string; libraryPlayerId?: string | null } }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
@@ -48,6 +54,21 @@ function buildTournamentName(tournaments: Tournament[]) {
   return tournamentNumber === 1 ? 'Chess Tournament' : `Chess Tournament ${tournamentNumber}`
 }
 
+function ensureValidState(state: TournamentState): TournamentState {
+  if (state.tournaments.length === 0) {
+    return createFallbackState()
+  }
+
+  if (state.tournaments.some((tournament) => tournament.id === state.activeTournamentId)) {
+    return state
+  }
+
+  return {
+    activeTournamentId: state.tournaments[0].id,
+    tournaments: state.tournaments,
+  }
+}
+
 function reducer(state: TournamentState, action: TournamentAction): TournamentState {
   switch (action.type) {
     case 'CREATE_TOURNAMENT': {
@@ -64,6 +85,13 @@ function reducer(state: TournamentState, action: TournamentAction): TournamentSt
       return state.tournaments.some((tournament) => tournament.id === action.payload.tournamentId)
         ? { ...state, activeTournamentId: action.payload.tournamentId }
         : state
+    case 'DELETE_TOURNAMENT':
+      return ensureValidState({
+        activeTournamentId: state.activeTournamentId,
+        tournaments: state.tournaments.filter(
+          (tournament) => tournament.id !== action.payload.tournamentId,
+        ),
+      })
     case 'ADD_PLAYER':
       return updateActiveTournament(state, (tournament) =>
         addPlayer(tournament, action.payload.name, action.payload.libraryPlayerId ?? null),
@@ -112,6 +140,7 @@ export function useTournament(enabled: boolean) {
   const [state, dispatch] = useReducer(reducer, undefined, createFallbackState)
   const [loading, setLoading] = useState(enabled)
   const [error, setError] = useState<string | null>(null)
+  const [mutating, setMutating] = useState(false)
   const hydratedRef = useRef(false)
   const lastSyncedPayloadRef = useRef<string | null>(null)
 
@@ -187,12 +216,51 @@ export function useTournament(enabled: boolean) {
   const tournament =
     state.tournaments.find((entry) => entry.id === state.activeTournamentId) ?? state.tournaments[0]
 
+  const replaceState = (nextState: TournamentCollection) => {
+    const normalizedState = ensureValidState(nextState)
+    hydratedRef.current = true
+    lastSyncedPayloadRef.current = JSON.stringify(normalizedState)
+    dispatch({ type: 'LOAD_TOURNAMENTS', payload: normalizedState })
+    setError(null)
+  }
+
+  const deleteTournament = async (tournamentId: string) => {
+    setMutating(true)
+
+    try {
+      const nextState = await deleteTournamentCollectionTournament(tournamentId)
+      replaceState(nextState)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to delete tournament')
+      throw requestError
+    } finally {
+      setMutating(false)
+    }
+  }
+
+  const clearAllData = async () => {
+    setMutating(true)
+
+    try {
+      const nextState = await clearAllWorkspaceData()
+      replaceState(nextState)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to clear account data')
+      throw requestError
+    } finally {
+      setMutating(false)
+    }
+  }
+
   return {
     activeTournamentId: state.activeTournamentId,
     tournament,
     tournaments: state.tournaments,
     dispatch,
+    deleteTournament,
+    clearAllData,
     loading,
+    mutating,
     error,
   }
 }

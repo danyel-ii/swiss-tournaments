@@ -84,6 +84,7 @@ export function DashboardView({
   return (
     <>
       <TournamentControls
+        key={`${tournament.id}:${tournament.name}`}
         tournament={tournament}
         roundsError={roundsError}
         onNameChange={onNameChange}
