@@ -36,10 +36,10 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('live')}
-          className={`theme-button-live rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
             activeView === 'live'
-              ? 'theme-button-live-active'
-              : ''
+              ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
+              : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
           }`}
         >
           {t.navigation.live}

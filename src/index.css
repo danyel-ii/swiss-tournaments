@@ -137,33 +137,3 @@ textarea {
   background: rgba(54, 6, 77, 0.16);
   color: rgba(54, 6, 77, 0.45);
 }
-
-.theme-button-live {
-  border: 1px solid rgba(218, 72, 72, 0.34);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04)),
-    rgba(218, 72, 72, 0.18);
-  color: var(--theme-red);
-  backdrop-filter: blur(12px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 10px 20px rgba(218, 72, 72, 0.12);
-}
-
-.theme-button-live:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
-    rgba(218, 72, 72, 0.24);
-  color: color-mix(in srgb, var(--theme-red) 88%, black 12%);
-}
-
-.theme-button-live-active {
-  border-color: rgba(218, 72, 72, 0.5);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03)),
-    rgba(218, 72, 72, 0.88);
-  color: #fff7f2;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 12px 24px rgba(218, 72, 72, 0.2);
-}
