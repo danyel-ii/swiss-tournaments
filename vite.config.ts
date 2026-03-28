@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'logo1.png', 'apple-touch-icon.png', 'pwa-icon.svg'],
+      includeAssets: ['favicon.svg', 'icons.svg', 'logo-source.jpeg', 'pwa-icon.svg'],
       manifest: {
         id: '/',
         name: 'Chess Tournament (Swiss Pairings)',
@@ -36,7 +36,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,ico}'],
       },
       devOptions: {
         enabled: true,
