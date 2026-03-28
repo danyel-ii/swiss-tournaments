@@ -34,8 +34,35 @@ interface TournamentRecordRow {
   updated_at: string
 }
 
+let ensureLibrarySchemaPromise: Promise<void> | null = null
+
 function normalizeName(name: string): string {
   return name.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+}
+
+async function ensureLibrarySchema(): Promise<void> {
+  if (!ensureLibrarySchemaPromise) {
+    ensureLibrarySchemaPromise = (async () => {
+      await sql`
+        create table if not exists player_library (
+          id text primary key,
+          username text not null check (username in ('kusselberg', 'schachmagie', 'danyel-ii')),
+          normalized_name text not null,
+          display_name text not null,
+          hidden boolean not null default false,
+          created_at timestamptz not null default now(),
+          unique (username, normalized_name)
+        )
+      `
+
+      await sql`
+        alter table player_library
+        add column if not exists hidden boolean not null default false
+      `
+    })()
+  }
+
+  await ensureLibrarySchemaPromise
 }
 
 async function ensureLibraryPlayer(
@@ -43,6 +70,7 @@ async function ensureLibraryPlayer(
   name: string,
   libraryPlayerId: string | null,
 ): Promise<LibraryRow> {
+  await ensureLibrarySchema()
   const normalizedName = normalizeName(name)
 
   if (libraryPlayerId) {
@@ -72,6 +100,8 @@ export async function syncWorkspaceProjection(
   username: AllowedUsername,
   collection: TournamentCollection,
 ): Promise<void> {
+  await ensureLibrarySchema()
+
   for (const tournament of collection.tournaments) {
     const libraryIdByTournamentPlayerId = new Map<string, string>()
 
@@ -180,6 +210,8 @@ export async function syncWorkspaceProjection(
 }
 
 export async function listLibraryPlayers(username: AllowedUsername): Promise<LibraryPlayer[]> {
+  await ensureLibrarySchema()
+
   const rows = (await sql`
     select
       pl.id,
@@ -212,6 +244,8 @@ export async function hideLibraryPlayer(
   username: AllowedUsername,
   playerId: string,
 ): Promise<boolean> {
+  await ensureLibrarySchema()
+
   const result = (await sql`
     update player_library
     set hidden = true
