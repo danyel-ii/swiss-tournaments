@@ -26,9 +26,7 @@ import { type TournamentAction, useTournament } from './hooks/useTournament'
 import type { LibraryPlayer } from './types/library'
 import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
-import { apiRequest } from './api/client'
 import { downloadTournamentExport } from './utils/export'
-import { buildTournamentReport } from './utils/tournamentReport'
 
 interface TournamentWorkspaceProps {
   username: string
@@ -53,7 +51,6 @@ interface TournamentWorkspaceProps {
   statisticsError: string | null
   onSelectStatsPlayer: (playerId: string | null) => void
   onDeleteStatsPlayer: (playerId: string) => Promise<void>
-  onEmailReport: (tournament: Tournament) => Promise<void>
   activeView: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'
   setActiveView: (view: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics') => void
 }
@@ -81,7 +78,6 @@ function TournamentWorkspace({
   statisticsError,
   onSelectStatsPlayer,
   onDeleteStatsPlayer,
-  onEmailReport,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -90,7 +86,6 @@ function TournamentWorkspace({
   const [playerError, setPlayerError] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
   const [liveMenuOpen, setLiveMenuOpen] = useState(false)
-  const [sendingReportEmail, setSendingReportEmail] = useState(false)
   const [selectedRound, setSelectedRound] = useState(
     tournament.currentRound > 0 ? tournament.currentRound : 0,
   )
@@ -191,29 +186,6 @@ function TournamentWorkspace({
     setPlayerName('')
     setPlayerError(null)
     setDuplicateWarning(null)
-  }
-
-  const handleEmailReport = async () => {
-    const confirmed = window.confirm(t.controls.emailReportConfirm)
-
-    if (!confirmed || sendingReportEmail) {
-      return
-    }
-
-    setSendingReportEmail(true)
-
-    try {
-      await onEmailReport(tournament)
-      window.alert(t.controls.emailReportSuccess)
-    } catch (emailError) {
-      window.alert(
-        emailError instanceof Error
-          ? t.controls.emailReportFailure(emailError.message)
-          : t.controls.emailReportFailure('Unable to send report'),
-      )
-    } finally {
-      setSendingReportEmail(false)
-    }
   }
 
   const canGenerateNextRound =
@@ -377,7 +349,6 @@ function TournamentWorkspace({
             resultTarget={resultTarget}
             roundComplete={roundComplete}
             roundsError={roundsError}
-            sendingReportEmail={sendingReportEmail}
             libraryPlayers={libraryPlayers}
             libraryLoading={libraryLoading}
             libraryDeleting={libraryDeleting}
@@ -398,7 +369,6 @@ function TournamentWorkspace({
             }
             onStart={handleStart}
             onExport={() => downloadTournamentExport(tournament)}
-            onEmailReport={handleEmailReport}
             onReset={handleReset}
             onSelectRound={setSelectedRound}
             onPlayerNameChange={(value) => {
@@ -468,19 +438,6 @@ function App() {
   const playerLibrary = usePlayerLibrary(auth.user !== null, workspaceRefreshKey)
   const playerStats = usePlayerStats(auth.user !== null, workspaceRefreshKey, selectedStatsPlayerId)
 
-  const emailTournamentReport = async (tournament: Tournament) => {
-    const report = buildTournamentReport(tournament)
-
-    await apiRequest<{ ok: true }>('/api/tournament-report-email', {
-      method: 'POST',
-      body: JSON.stringify({
-        tournamentId: tournament.id,
-        tournamentName: tournament.name,
-        report,
-      }),
-    })
-  }
-
   if (auth.loading) {
     return <LoadingScreen label={t.auth.loadingSession} />
   }
@@ -544,7 +501,6 @@ function App() {
         statisticsError={playerStats.error}
         onSelectStatsPlayer={setSelectedStatsPlayerId}
         onDeleteStatsPlayer={playerStats.deletePlayer}
-        onEmailReport={emailTournamentReport}
         activeView={activeView}
         setActiveView={setActiveView}
       />

@@ -66,11 +66,6 @@ export type TranslationSet = {
     increaseRounds: string
     startTournament: string
     exportReport: string
-    emailReport: string
-    emailReportSending: string
-    emailReportConfirm: string
-    emailReportSuccess: string
-    emailReportFailure: (message: string) => string
     resetTournament: string
     resetConfirm: string
   }
@@ -311,12 +306,7 @@ export const translations: Record<Language, TranslationSet> = {
       decreaseRounds: 'Decrease rounds',
       increaseRounds: 'Increase rounds',
       startTournament: 'Start Tournament',
-      exportReport: 'Export Report',
-      emailReport: 'Email Report',
-      emailReportSending: 'Sending Report...',
-      emailReportConfirm: 'Email the current tournament report to daniel.r.hawes@proton.me?',
-      emailReportSuccess: 'Tournament report sent.',
-      emailReportFailure: (message) => `Unable to send tournament report: ${message}`,
+      exportReport: 'Download Report (.md)',
       resetTournament: 'Reset Tournament',
       resetConfirm: 'Reset the tournament and clear saved state?',
     },
@@ -572,12 +562,7 @@ export const translations: Record<Language, TranslationSet> = {
       decreaseRounds: 'Runden verringern',
       increaseRounds: 'Runden erhoehen',
       startTournament: 'Turnier starten',
-      exportReport: 'Bericht exportieren',
-      emailReport: 'Bericht mailen',
-      emailReportSending: 'Bericht wird gesendet...',
-      emailReportConfirm: 'Den aktuellen Turnierbericht an daniel.r.hawes@proton.me senden?',
-      emailReportSuccess: 'Turnierbericht wurde gesendet.',
-      emailReportFailure: (message) => `Turnierbericht konnte nicht gesendet werden: ${message}`,
+      exportReport: 'Bericht herunterladen (.md)',
       resetTournament: 'Turnier zuruecksetzen',
       resetConfirm: 'Turnier zuruecksetzen und gespeicherten Stand loeschen?',
     },

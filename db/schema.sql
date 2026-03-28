@@ -83,10 +83,3 @@ create table if not exists tournament_match_entries (
 create index if not exists tournament_match_entries_username_idx on tournament_match_entries (username);
 create index if not exists tournament_match_entries_white_library_idx on tournament_match_entries (white_library_player_id);
 create index if not exists tournament_match_entries_black_library_idx on tournament_match_entries (black_library_player_id);
-
-create table if not exists tournament_report_emails (
-  username text not null check (username in ('kusselberg', 'schachmagie', 'danyel-ii')),
-  tournament_id text not null,
-  last_sent_at timestamptz not null default now(),
-  primary key (username, tournament_id)
-);
