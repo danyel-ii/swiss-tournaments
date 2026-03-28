@@ -12,6 +12,7 @@ export function LoginView({ onLogin, error }: LoginViewProps) {
   const { t } = useI18n()
   const [username, setUsername] = useState<(typeof USER_OPTIONS)[number]>('kusselberg')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   return (
@@ -57,11 +58,21 @@ export function LoginView({ onLogin, error }: LoginViewProps) {
             <label className="theme-label block text-sm font-medium">
               <span className="font-display">{t.auth.password}</span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="theme-input font-data mt-2 w-full rounded-2xl border px-4 py-3 outline-none transition"
               />
+            </label>
+
+            <label className="theme-copy flex items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(event) => setShowPassword(event.target.checked)}
+                className="h-4 w-4 rounded border-[var(--theme-border)] accent-[var(--theme-plum)]"
+              />
+              <span className="font-data">{t.auth.showPassword}</span>
             </label>
 
             {error ? (

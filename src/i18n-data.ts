@@ -214,6 +214,7 @@ export type TranslationSet = {
     subtitle: string
     username: string
     password: string
+    showPassword: string
     signIn: string
     signingIn: string
     loadingSession: string
@@ -477,6 +478,7 @@ export const translations: Record<Language, TranslationSet> = {
         'Authentication and saved tournament data are handled by Neon-backed server routes.',
       username: 'Username',
       password: 'Password',
+      showPassword: 'View password',
       signIn: 'Sign In',
       signingIn: 'Signing In...',
       loadingSession: 'Checking session...',
@@ -736,6 +738,7 @@ export const translations: Record<Language, TranslationSet> = {
       subtitle: '',
       username: 'Benutzername',
       password: 'Passwort',
+      showPassword: 'Passwort anzeigen',
       signIn: 'Anmelden',
       signingIn: 'Anmeldung laeuft...',
       loadingSession: 'Sitzung wird geprueft...',

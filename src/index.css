@@ -137,3 +137,42 @@ textarea {
   background: rgba(54, 6, 77, 0.16);
   color: rgba(54, 6, 77, 0.45);
 }
+
+.theme-button-retro {
+  border: 2px solid var(--theme-plum);
+  background:
+    linear-gradient(180deg, #ffb0a8 0%, #ff6459 55%, #cf221c 100%);
+  color: #fff6ef;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 236, 0.9),
+    inset 0 -2px 0 rgba(88, 8, 8, 0.28),
+    0 4px 0 #36064d,
+    0 8px 18px rgba(54, 6, 77, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.theme-button-retro:hover {
+  background:
+    linear-gradient(180deg, #ffc0b9 0%, #ff766b 55%, #dc2f27 100%);
+}
+
+.theme-button-retro:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 236, 0.9),
+    inset 0 -2px 0 rgba(88, 8, 8, 0.28),
+    0 2px 0 #36064d,
+    0 5px 12px rgba(54, 6, 77, 0.16);
+}
+
+.theme-button-retro-active {
+  background:
+    linear-gradient(180deg, #ff867d 0%, #f03b33 52%, #9f0f12 100%);
+  color: #fff7f2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 214, 0.5),
+    inset 0 -2px 0 rgba(76, 3, 7, 0.32),
+    0 2px 0 #36064d,
+    0 6px 16px rgba(54, 6, 77, 0.24);
+}
