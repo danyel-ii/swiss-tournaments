@@ -111,10 +111,12 @@ export type TranslationSet = {
     save: string
     cancel: string
     active: string
-    libraryTitle: string
-    libraryEmpty: string
-    addFromLibrary: string
-    joinsNextRound: (round: number) => string
+      libraryTitle: string
+      libraryEmpty: string
+      addFromLibrary: string
+      deleteLibrary: string
+      deleteLibraryConfirm: (name: string) => string
+      joinsNextRound: (round: number) => string
     droppedAfterRound: (round: number) => string
     errors: {
       emptyName: string
@@ -291,9 +293,9 @@ export const translations: Record<Language, TranslationSet> = {
         `Delete "${name}" from the active tournament workspace? Historical player statistics stay available until explicitly deleted.`,
       deleteAllData: 'Delete All Data',
       deleteAllDataConfirm:
-        'Delete all saved tournaments, player library entries, and projected statistics for this account?',
+        'Delete all saved tournaments for this account? Player library entries and statistics stay available.',
       deleteAllDataHelp:
-        'This clears all saved tournaments plus the derived player statistics for the signed-in account.',
+        'This clears only the saved tournament workspace. Player library entries and historical statistics remain available.',
       active: 'Active',
       openTournament: 'Open Tournament',
       openCurrent: 'Continue',
@@ -365,6 +367,8 @@ export const translations: Record<Language, TranslationSet> = {
       libraryTitle: 'Player Library',
       libraryEmpty: 'Players you use across tournaments will appear here.',
       addFromLibrary: 'Add from library',
+      deleteLibrary: 'Delete',
+      deleteLibraryConfirm: (name) => `Delete "${name}" from the player library? Tournament history and statistics stay available.`,
       joinsNextRound: (round) => `Joins in round ${round}`,
       droppedAfterRound: (round) => `Dropped after round ${round}`,
       errors: {
@@ -549,9 +553,9 @@ export const translations: Record<Language, TranslationSet> = {
         `Turnier "${name}" aus dem aktiven Turnierbereich loeschen? Historische Spielerstatistiken bleiben erhalten, bis sie ausdruecklich geloescht werden.`,
       deleteAllData: 'Alle Daten loeschen',
       deleteAllDataConfirm:
-        'Alle gespeicherten Turniere, Bibliothekseintraege und abgeleiteten Statistiken fuer dieses Konto loeschen?',
+        'Alle gespeicherten Turniere dieses Kontos loeschen? Spielerbibliothek und Statistiken bleiben erhalten.',
       deleteAllDataHelp:
-        'Das entfernt alle gespeicherten Turniere und die daraus berechneten Spielerstatistiken des angemeldeten Kontos.',
+        'Das entfernt nur den gespeicherten Turnierbereich. Spielerbibliothek und historische Statistiken bleiben erhalten.',
       active: 'Aktiv',
       openTournament: 'Turnier oeffnen',
       openCurrent: 'Weiter',
@@ -623,6 +627,8 @@ export const translations: Record<Language, TranslationSet> = {
       libraryTitle: 'Spielerbibliothek',
       libraryEmpty: 'Spieler, die du turnieruebergreifend verwendest, erscheinen hier.',
       addFromLibrary: 'Aus Bibliothek hinzufuegen',
+      deleteLibrary: 'Loeschen',
+      deleteLibraryConfirm: (name) => `„${name}“ aus der Spielerbibliothek loeschen? Turnierhistorie und Statistiken bleiben erhalten.`,
       joinsNextRound: (round) => `Steigt in Runde ${round} ein`,
       droppedAfterRound: (round) => `Nach Runde ${round} ausgeschieden`,
       errors: {

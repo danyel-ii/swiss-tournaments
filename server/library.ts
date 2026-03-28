@@ -47,8 +47,8 @@ async function ensureLibraryPlayer(
 
   if (libraryPlayerId) {
     const byId = (await sql`
-      insert into player_library (id, username, normalized_name, display_name)
-      values (${libraryPlayerId}, ${username}, ${normalizedName}, ${name})
+      insert into player_library (id, username, normalized_name, display_name, hidden)
+      values (${libraryPlayerId}, ${username}, ${normalizedName}, ${name}, false)
       on conflict (id)
       do update set normalized_name = excluded.normalized_name, display_name = excluded.display_name
       returning id, display_name, created_at
@@ -58,8 +58,8 @@ async function ensureLibraryPlayer(
   }
 
   const byName = (await sql`
-    insert into player_library (id, username, normalized_name, display_name)
-    values (${crypto.randomUUID()}, ${username}, ${normalizedName}, ${name})
+    insert into player_library (id, username, normalized_name, display_name, hidden)
+    values (${crypto.randomUUID()}, ${username}, ${normalizedName}, ${name}, false)
     on conflict (username, normalized_name)
     do update set display_name = excluded.display_name
     returning id, display_name, created_at
@@ -190,6 +190,7 @@ export async function listLibraryPlayers(username: AllowedUsername): Promise<Lib
     left join tournament_player_entries tpe
       on tpe.library_player_id = pl.id
     where pl.username = ${username}
+      and pl.hidden = false
     group by pl.id, pl.display_name, pl.created_at
     order by pl.display_name asc
   `) as Array<{
@@ -205,6 +206,22 @@ export async function listLibraryPlayers(username: AllowedUsername): Promise<Lib
     tournamentCount: row.tournament_count,
     createdAt: row.created_at,
   }))
+}
+
+export async function hideLibraryPlayer(
+  username: AllowedUsername,
+  playerId: string,
+): Promise<boolean> {
+  const result = (await sql`
+    update player_library
+    set hidden = true
+    where username = ${username}
+      and id = ${playerId}
+      and hidden = false
+    returning id
+  `) as Array<{ id: string }>
+
+  return result.length > 0
 }
 
 function createEmptySummary(row: LibraryRow): PlayerStatsSummary {

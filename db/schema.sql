@@ -30,6 +30,7 @@ create table if not exists player_library (
   username text not null check (username in ('kusselberg', 'schachmagie', 'danyel-ii')),
   normalized_name text not null,
   display_name text not null,
+  hidden boolean not null default false,
   created_at timestamptz not null default now(),
   unique (username, normalized_name)
 );

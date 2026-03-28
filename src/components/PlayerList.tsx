@@ -10,12 +10,15 @@ interface PlayerListProps {
   currentRound: number
   libraryPlayers: LibraryPlayer[]
   libraryLoading: boolean
+  libraryDeleting: boolean
+  libraryError: string | null
   playerName: string
   error: string | null
   duplicateWarning: string | null
   onPlayerNameChange: (value: string) => void
   onAddPlayer: () => void
   onAddLibraryPlayer: (player: LibraryPlayer) => void
+  onDeleteLibraryPlayer: (player: LibraryPlayer) => Promise<void>
   onRenamePlayer: (playerId: string, name: string) => void
   onRemovePlayer: (playerId: string) => void
 }
@@ -26,12 +29,15 @@ export function PlayerList({
   currentRound,
   libraryPlayers,
   libraryLoading,
+  libraryDeleting,
+  libraryError,
   playerName,
   error,
   duplicateWarning,
   onPlayerNameChange,
   onAddPlayer,
   onAddLibraryPlayer,
+  onDeleteLibraryPlayer,
   onRenamePlayer,
   onRemovePlayer,
 }: PlayerListProps) {
@@ -48,6 +54,16 @@ export function PlayerList({
   const stopEditing = () => {
     setEditingPlayerId(null)
     setEditingName('')
+  }
+
+  const handleDeleteLibraryPlayer = async (libraryPlayer: LibraryPlayer) => {
+    const confirmed = window.confirm(t.players.deleteLibraryConfirm(libraryPlayer.name))
+
+    if (!confirmed) {
+      return
+    }
+
+    await onDeleteLibraryPlayer(libraryPlayer)
   }
 
   return (
@@ -99,7 +115,7 @@ export function PlayerList({
                 <p className="theme-copy font-data text-sm">{t.players.addFromLibrary}</p>
               </div>
               <span className="theme-copy font-data text-sm">
-                {libraryLoading ? '…' : libraryPlayers.length}
+                {libraryLoading || libraryDeleting ? '…' : libraryPlayers.length}
               </span>
             </div>
 
@@ -108,24 +124,43 @@ export function PlayerList({
                 {t.players.libraryEmpty}
               </p>
             ) : (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-col gap-2">
                 {libraryPlayers
                   .filter(
                     (libraryPlayer) =>
                       !players.some((player) => player.libraryPlayerId === libraryPlayer.id),
                   )
                   .map((libraryPlayer) => (
-                    <button
+                    <div
                       key={libraryPlayer.id}
-                      type="button"
-                      onClick={() => onAddLibraryPlayer(libraryPlayer)}
-                      className="rounded-full bg-[var(--theme-surface)] px-4 py-2 font-display text-sm font-semibold transition hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]"
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--theme-surface)] px-4 py-3"
                     >
-                      {libraryPlayer.name}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => onAddLibraryPlayer(libraryPlayer)}
+                        className="min-w-0 flex-1 truncate text-left font-display text-sm font-semibold transition hover:text-[var(--theme-plum)]"
+                      >
+                        {libraryPlayer.name}
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={libraryDeleting}
+                        onClick={() => {
+                          void handleDeleteLibraryPlayer(libraryPlayer)
+                        }}
+                        className="font-display rounded-full bg-[var(--theme-red-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {t.players.deleteLibrary}
+                      </button>
+                    </div>
                   ))}
               </div>
             )}
+
+            {libraryError ? (
+              <p className="font-data mt-3 text-sm text-[var(--theme-red)]">{libraryError}</p>
+            ) : null}
           </div>
         </div>
       ) : null}

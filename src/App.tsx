@@ -41,8 +41,11 @@ interface TournamentWorkspaceProps {
   onLogout: () => void
   onDeleteTournament: (tournamentId: string) => Promise<void>
   onClearAllData: () => Promise<void>
+  onDeleteLibraryPlayer: (playerId: string) => Promise<void>
   libraryPlayers: LibraryPlayer[]
   libraryLoading: boolean
+  libraryDeleting: boolean
+  libraryError: string | null
   statisticsPlayers: ReturnType<typeof usePlayerStats>['players']
   statisticsDetail: ReturnType<typeof usePlayerStats>['detail']
   statisticsLoading: boolean
@@ -66,8 +69,11 @@ function TournamentWorkspace({
   onLogout,
   onDeleteTournament,
   onClearAllData,
+  onDeleteLibraryPlayer,
   libraryPlayers,
   libraryLoading,
+  libraryDeleting,
+  libraryError,
   statisticsPlayers,
   statisticsDetail,
   statisticsLoading,
@@ -374,6 +380,8 @@ function TournamentWorkspace({
             sendingReportEmail={sendingReportEmail}
             libraryPlayers={libraryPlayers}
             libraryLoading={libraryLoading}
+            libraryDeleting={libraryDeleting}
+            libraryError={libraryError}
             playerName={playerName}
             playerError={playerError}
             duplicateWarning={duplicateWarning}
@@ -403,6 +411,7 @@ function TournamentWorkspace({
             onAddLibraryPlayer={(player) =>
               dispatch({ type: 'ADD_PLAYER', payload: { name: player.name, libraryPlayerId: player.id } })
             }
+            onDeleteLibraryPlayer={(player) => onDeleteLibraryPlayer(player.id)}
             onRenamePlayer={(playerId, name) =>
               dispatch({ type: 'RENAME_PLAYER', payload: { playerId, name } })
             }
@@ -523,8 +532,11 @@ function App() {
         }}
         onDeleteTournament={deleteTournament}
         onClearAllData={clearAllData}
+        onDeleteLibraryPlayer={playerLibrary.deletePlayer}
         libraryPlayers={playerLibrary.players}
         libraryLoading={playerLibrary.loading}
+        libraryDeleting={playerLibrary.mutating}
+        libraryError={playerLibrary.error}
         statisticsPlayers={playerStats.players}
         statisticsDetail={playerStats.detail}
         statisticsLoading={playerStats.loading}

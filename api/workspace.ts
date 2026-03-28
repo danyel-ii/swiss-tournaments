@@ -114,7 +114,6 @@ export default async function handler(
       await sql`delete from tournament_match_entries where username = ${username}`
       await sql`delete from tournament_player_entries where username = ${username}`
       await sql`delete from tournament_records where username = ${username}`
-      await sql`delete from player_library where username = ${username}`
       await sql`delete from workspaces where username = ${username}`
 
       sendJson(response, 200, createDefaultTournamentCollection())

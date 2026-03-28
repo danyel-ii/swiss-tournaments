@@ -23,6 +23,8 @@ interface DashboardViewProps {
   sendingReportEmail: boolean
   libraryPlayers: LibraryPlayer[]
   libraryLoading: boolean
+  libraryDeleting: boolean
+  libraryError: string | null
   playerName: string
   playerError: string | null
   duplicateWarning: string | null
@@ -41,6 +43,7 @@ interface DashboardViewProps {
   onPlayerNameChange: (value: string) => void
   onAddPlayer: () => void
   onAddLibraryPlayer: (player: LibraryPlayer) => void
+  onDeleteLibraryPlayer: (player: LibraryPlayer) => Promise<void>
   onRenamePlayer: (playerId: string, name: string) => void
   onRemovePlayer: (playerId: string) => void
   onSetResult: (matchId: string, result: ManualMatchResult) => void
@@ -62,6 +65,8 @@ export function DashboardView({
   sendingReportEmail,
   libraryPlayers,
   libraryLoading,
+  libraryDeleting,
+  libraryError,
   playerName,
   playerError,
   duplicateWarning,
@@ -80,6 +85,7 @@ export function DashboardView({
   onPlayerNameChange,
   onAddPlayer,
   onAddLibraryPlayer,
+  onDeleteLibraryPlayer,
   onRenamePlayer,
   onRemovePlayer,
   onSetResult,
@@ -122,12 +128,15 @@ export function DashboardView({
           currentRound={tournament.currentRound}
           libraryPlayers={libraryPlayers}
           libraryLoading={libraryLoading}
+          libraryDeleting={libraryDeleting}
+          libraryError={libraryError}
           playerName={playerName}
           error={playerError}
           duplicateWarning={duplicateWarning}
           onPlayerNameChange={onPlayerNameChange}
           onAddPlayer={onAddPlayer}
           onAddLibraryPlayer={onAddLibraryPlayer}
+          onDeleteLibraryPlayer={onDeleteLibraryPlayer}
           onRenamePlayer={onRenamePlayer}
           onRemovePlayer={onRemovePlayer}
         />

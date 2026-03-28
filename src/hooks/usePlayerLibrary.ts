@@ -9,6 +9,7 @@ interface PlayerLibraryResponse {
 export function usePlayerLibrary(enabled: boolean, refreshKey: string) {
   const [players, setPlayers] = useState<LibraryPlayer[]>([])
   const [loading, setLoading] = useState(enabled)
+  const [mutating, setMutating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -45,9 +46,29 @@ export function usePlayerLibrary(enabled: boolean, refreshKey: string) {
     }
   }, [enabled, refreshKey])
 
+  const deletePlayer = async (playerId: string) => {
+    setMutating(true)
+
+    try {
+      await apiRequest<{ ok: true }>(`/api/player-library?playerId=${encodeURIComponent(playerId)}`, {
+        method: 'DELETE',
+        body: JSON.stringify({}),
+      })
+      setPlayers((current) => current.filter((player) => player.id !== playerId))
+      setError(null)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to delete library player')
+      throw requestError
+    } finally {
+      setMutating(false)
+    }
+  }
+
   return {
     players,
     loading,
+    mutating,
     error,
+    deletePlayer,
   }
 }
