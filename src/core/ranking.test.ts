@@ -15,6 +15,7 @@ import type { Match, Player } from '../types/tournament'
 function createPlayers(names: string[]): Player[] {
   return names.map((name, index) => ({
     id: `player-${index + 1}`,
+    libraryPlayerId: null,
     name,
     seed: index + 1,
     enteredRound: 1,
@@ -360,5 +361,57 @@ describe('tournament progression', () => {
           (match.whitePlayerId === playerToDrop.id || match.blackPlayerId === playerToDrop.id),
       ),
     ).toBe(false)
+  })
+
+  it('rewinds the tournament when a past-round result is corrected', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob', 'Carol', 'David']),
+      totalRounds: 3,
+    })
+
+    const roundOneCompleted = startedTournament.matches.reduce((tournament, match) => {
+      if (match.isBye) {
+        return tournament
+      }
+
+      return setMatchResult(tournament, match.id, '1-0')
+    }, startedTournament)
+    const roundTwoTournament = generateNextRound(roundOneCompleted)
+    const firstRoundMatch = roundTwoTournament.matches.find((match) => match.round === 1 && !match.isBye)
+
+    expect(roundTwoTournament.currentRound).toBe(2)
+    expect(firstRoundMatch).toBeDefined()
+
+    const correctedTournament = setMatchResult(
+      roundTwoTournament,
+      firstRoundMatch!.id,
+      '0-1',
+    )
+
+    expect(correctedTournament.currentRound).toBe(1)
+    expect(correctedTournament.status).toBe('in_progress')
+    expect(correctedTournament.matches.every((match) => match.round <= 1)).toBe(true)
+    expect(correctedTournament.matches.find((match) => match.id === firstRoundMatch!.id)?.result).toBe('0-1')
+  })
+
+  it('keeps current-round edits in place without truncating later rounds', () => {
+    const baseTournament = createDefaultTournament()
+    const startedTournament = startTournament({
+      ...baseTournament,
+      players: createPlayers(['Alice', 'Bob', 'Carol', 'David']),
+      totalRounds: 3,
+    })
+
+    const currentRoundMatch = startedTournament.matches.find((match) => !match.isBye)
+
+    expect(currentRoundMatch).toBeDefined()
+
+    const updatedTournament = setMatchResult(startedTournament, currentRoundMatch!.id, '1-0')
+
+    expect(updatedTournament.currentRound).toBe(1)
+    expect(updatedTournament.matches).toHaveLength(startedTournament.matches.length)
+    expect(updatedTournament.matches.find((match) => match.id === currentRoundMatch!.id)?.result).toBe('1-0')
   })
 })

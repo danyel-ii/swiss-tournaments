@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { requireUsername } from '../server/auth'
-import { sql } from '../server/db'
-import { sendJson, sendMethodNotAllowed, setNoStore, parseJsonBody } from '../server/http'
-import { createDefaultTournamentCollection } from '../server/workspace'
-import type { TournamentCollection } from '../src/types/workspace'
+import { requireUsername } from '../server/auth.js'
+import { sql } from '../server/db.js'
+import { sendJson, sendMethodNotAllowed, setNoStore, parseJsonBody } from '../server/http.js'
+import { syncWorkspaceProjection } from '../server/library.js'
+import { createDefaultTournamentCollection } from '../server/workspace.js'
+import type { TournamentCollection } from '../src/types/workspace.js'
 
 function normalizeCollection(value: unknown): TournamentCollection {
   const fallback = createDefaultTournamentCollection()
@@ -60,6 +61,7 @@ export default async function handler(
       on conflict (username)
       do update set payload = excluded.payload, updated_at = now()
     `
+    await syncWorkspaceProjection(username, payload)
 
     sendJson(response, 200, { ok: true })
     return

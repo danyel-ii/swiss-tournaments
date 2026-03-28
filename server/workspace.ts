@@ -1,4 +1,4 @@
-import type { TournamentCollection } from '../src/types/workspace'
+import type { TournamentCollection } from '../src/types/workspace.js'
 
 function now(): string {
   return new Date().toISOString()

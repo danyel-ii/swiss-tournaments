@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getSessionUsername } from '../../server/auth'
-import { sendJson, sendMethodNotAllowed, setNoStore } from '../../server/http'
+import { getSessionUsername } from '../../server/auth.js'
+import { sendJson, sendMethodNotAllowed, setNoStore } from '../../server/http.js'
 
 export default async function handler(
   request: VercelRequest,

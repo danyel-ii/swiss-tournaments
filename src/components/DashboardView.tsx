@@ -5,6 +5,7 @@ import { RoundNavigator } from './RoundNavigator'
 import { StandingsTable } from './StandingsTable'
 import { TournamentControls } from './TournamentControls'
 import { TournamentPulse } from './TournamentPulse'
+import type { LibraryPlayer } from '../types/library'
 import type { ManualMatchResult, Match, PlayerStanding, Tournament } from '../types/tournament'
 
 interface DashboardViewProps {
@@ -19,6 +20,8 @@ interface DashboardViewProps {
   resultTarget: number
   roundComplete: boolean
   roundsError: string | null
+  libraryPlayers: LibraryPlayer[]
+  libraryLoading: boolean
   playerName: string
   playerError: string | null
   duplicateWarning: string | null
@@ -35,6 +38,7 @@ interface DashboardViewProps {
   onSelectRound: (round: number) => void
   onPlayerNameChange: (value: string) => void
   onAddPlayer: () => void
+  onAddLibraryPlayer: (player: LibraryPlayer) => void
   onRenamePlayer: (playerId: string, name: string) => void
   onRemovePlayer: (playerId: string) => void
   onSetResult: (matchId: string, result: ManualMatchResult) => void
@@ -53,6 +57,8 @@ export function DashboardView({
   resultTarget,
   roundComplete,
   roundsError,
+  libraryPlayers,
+  libraryLoading,
   playerName,
   playerError,
   duplicateWarning,
@@ -69,6 +75,7 @@ export function DashboardView({
   onSelectRound,
   onPlayerNameChange,
   onAddPlayer,
+  onAddLibraryPlayer,
   onRenamePlayer,
   onRemovePlayer,
   onSetResult,
@@ -106,11 +113,14 @@ export function DashboardView({
           players={tournament.players}
           status={tournament.status}
           currentRound={tournament.currentRound}
+          libraryPlayers={libraryPlayers}
+          libraryLoading={libraryLoading}
           playerName={playerName}
           error={playerError}
           duplicateWarning={duplicateWarning}
           onPlayerNameChange={onPlayerNameChange}
           onAddPlayer={onAddPlayer}
+          onAddLibraryPlayer={onAddLibraryPlayer}
           onRenamePlayer={onRenamePlayer}
           onRemovePlayer={onRemovePlayer}
         />

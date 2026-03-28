@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AvatarBadge, PawnIcon, ShieldIcon } from './GamePieces'
+import type { LibraryPlayer } from '../types/library'
 import type { Player, TournamentStatus } from '../types/tournament'
 import { useI18n } from '../useI18n'
 
@@ -7,11 +8,14 @@ interface PlayerListProps {
   players: Player[]
   status: TournamentStatus
   currentRound: number
+  libraryPlayers: LibraryPlayer[]
+  libraryLoading: boolean
   playerName: string
   error: string | null
   duplicateWarning: string | null
   onPlayerNameChange: (value: string) => void
   onAddPlayer: () => void
+  onAddLibraryPlayer: (player: LibraryPlayer) => void
   onRenamePlayer: (playerId: string, name: string) => void
   onRemovePlayer: (playerId: string) => void
 }
@@ -20,11 +24,14 @@ export function PlayerList({
   players,
   status,
   currentRound,
+  libraryPlayers,
+  libraryLoading,
   playerName,
   error,
   duplicateWarning,
   onPlayerNameChange,
   onAddPlayer,
+  onAddLibraryPlayer,
   onRenamePlayer,
   onRemovePlayer,
 }: PlayerListProps) {
@@ -55,31 +62,71 @@ export function PlayerList({
       </div>
 
       {canAddPlayers ? (
-        <div className="mt-6 flex flex-col gap-3 md:flex-row">
-          <label className="theme-label flex-1 text-sm font-medium">
-            <span className="font-display">{t.players.playerName}</span>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(event) => onPlayerNameChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  onAddPlayer()
-                }
-              }}
-              className="theme-input font-data mt-2 w-full rounded-2xl border px-4 py-3 outline-none transition"
-            />
-          </label>
+        <div className="mt-6 space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row">
+            <label className="theme-label flex-1 text-sm font-medium">
+              <span className="font-display">{t.players.playerName}</span>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(event) => onPlayerNameChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    onAddPlayer()
+                  }
+                }}
+                className="theme-input font-data mt-2 w-full rounded-2xl border px-4 py-3 outline-none transition"
+              />
+            </label>
 
-          <button
-            type="button"
-            onClick={onAddPlayer}
-            className="theme-button-aqua font-display inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none md:self-end"
-          >
-            <ShieldIcon className="h-4 w-4" />
-            {t.players.addPlayer}
-          </button>
+            <button
+              type="button"
+              onClick={onAddPlayer}
+              className="theme-button-aqua font-display inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none md:self-end"
+            >
+              <ShieldIcon className="h-4 w-4" />
+              {t.players.addPlayer}
+            </button>
+          </div>
+
+          <div className="theme-muted-panel rounded-3xl px-4 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="theme-heading font-display text-lg font-semibold">
+                  {t.players.libraryTitle}
+                </h3>
+                <p className="theme-copy font-data text-sm">{t.players.addFromLibrary}</p>
+              </div>
+              <span className="theme-copy font-data text-sm">
+                {libraryLoading ? '…' : libraryPlayers.length}
+              </span>
+            </div>
+
+            {libraryPlayers.length === 0 ? (
+              <p className="theme-copy font-data mt-3 text-sm">
+                {t.players.libraryEmpty}
+              </p>
+            ) : (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {libraryPlayers
+                  .filter(
+                    (libraryPlayer) =>
+                      !players.some((player) => player.libraryPlayerId === libraryPlayer.id),
+                  )
+                  .map((libraryPlayer) => (
+                    <button
+                      key={libraryPlayer.id}
+                      type="button"
+                      onClick={() => onAddLibraryPlayer(libraryPlayer)}
+                      className="rounded-full bg-[var(--theme-surface)] px-4 py-2 font-display text-sm font-semibold transition hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]"
+                    >
+                      {libraryPlayer.name}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
       ) : null}
 

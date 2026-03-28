@@ -3,8 +3,8 @@ import {
   attachSessionCookie,
   authenticateCredentials,
   createSession,
-} from '../../server/auth'
-import { sendJson, sendMethodNotAllowed, setNoStore, parseJsonBody } from '../../server/http'
+} from '../../server/auth.js'
+import { sendJson, sendMethodNotAllowed, setNoStore, parseJsonBody } from '../../server/http.js'
 
 interface LoginBody {
   username?: string

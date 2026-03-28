@@ -6,6 +6,7 @@ export type PlayerColor = 'W' | 'B'
 
 export interface Player {
   id: string
+  libraryPlayerId: string | null
   name: string
   seed: number
   enteredRound: number

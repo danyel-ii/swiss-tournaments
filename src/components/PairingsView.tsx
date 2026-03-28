@@ -58,7 +58,7 @@ export function PairingsView({
                 ? isRoundComplete
                   ? t.pairings.roundComplete
                   : t.pairings.resultsEntered(resultsEntered, resultTarget)
-                : t.pairings.archivedRound(viewedRound)
+                : t.pairings.archivedRoundEditable(viewedRound)
               : t.pairings.waiting}
           </p>
         </div>
@@ -87,6 +87,12 @@ export function PairingsView({
         </div>
       ) : (
         <>
+          {!isViewingCurrentRound ? (
+            <div className="mt-6 rounded-3xl bg-[var(--theme-red-soft)] px-4 py-4 text-sm text-[var(--theme-red)]">
+              {t.pairings.archivedEditWarning}
+            </div>
+          ) : null}
+
           <div className="mt-6 space-y-3 md:hidden">
             {matches.map((match) => (
               <article key={match.id} className="theme-muted-panel rounded-3xl p-4">
@@ -141,11 +147,10 @@ export function PairingsView({
                       <select
                         aria-label={t.pairings.resultForBoard(match.board)}
                         value={match.result ?? ''}
-                        disabled={!isViewingCurrentRound}
                         onChange={(event) =>
                           onSetResult(match.id, event.target.value as ManualMatchResult)
                         }
-                        className="theme-input font-data mt-2 w-full rounded-2xl border px-3 py-2 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+                        className="theme-input font-data mt-2 w-full rounded-2xl border px-3 py-2 outline-none transition"
                       >
                         <option value="">{t.common.selectResult}</option>
                         {resultOptions.map((option) => (
@@ -201,11 +206,10 @@ export function PairingsView({
                         <select
                           aria-label={t.pairings.resultForBoard(match.board)}
                           value={match.result ?? ''}
-                          disabled={!isViewingCurrentRound}
                           onChange={(event) =>
                             onSetResult(match.id, event.target.value as ManualMatchResult)
                           }
-                          className="theme-input font-data w-full rounded-2xl border px-3 py-2 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+                          className="theme-input font-data w-full rounded-2xl border px-3 py-2 outline-none transition"
                         >
                           <option value="">{t.common.selectResult}</option>
                           {resultOptions.map((option) => (

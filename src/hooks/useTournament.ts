@@ -20,7 +20,7 @@ type TournamentState = TournamentCollection
 export type TournamentAction =
   | { type: 'CREATE_TOURNAMENT'; payload?: { name?: string } }
   | { type: 'SELECT_TOURNAMENT'; payload: { tournamentId: string } }
-  | { type: 'ADD_PLAYER'; payload: { name: string } }
+  | { type: 'ADD_PLAYER'; payload: { name: string; libraryPlayerId?: string | null } }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_TOTAL_ROUNDS'; payload: { totalRounds: number } }
@@ -65,7 +65,9 @@ function reducer(state: TournamentState, action: TournamentAction): TournamentSt
         ? { ...state, activeTournamentId: action.payload.tournamentId }
         : state
     case 'ADD_PLAYER':
-      return updateActiveTournament(state, (tournament) => addPlayer(tournament, action.payload.name))
+      return updateActiveTournament(state, (tournament) =>
+        addPlayer(tournament, action.payload.name, action.payload.libraryPlayerId ?? null),
+      )
     case 'RENAME_PLAYER':
       return updateActiveTournament(state, (tournament) =>
         renamePlayer(tournament, action.payload.playerId, action.payload.name),

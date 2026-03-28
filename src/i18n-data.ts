@@ -32,6 +32,7 @@ export type TranslationSet = {
     dashboard: string
     tournaments: string
     standings: string
+    statistics: string
   }
   tournaments: {
     directoryEyebrow: string
@@ -93,6 +94,9 @@ export type TranslationSet = {
     save: string
     cancel: string
     active: string
+    libraryTitle: string
+    libraryEmpty: string
+    addFromLibrary: string
     joinsNextRound: (round: number) => string
     droppedAfterRound: (round: number) => string
     errors: {
@@ -100,6 +104,22 @@ export type TranslationSet = {
       minPlayers: string
       duplicateWarning: (name: string) => string
     }
+  }
+  statistics: {
+    title: string
+    subtitle: string
+    empty: string
+    loading: string
+    tournamentsPlayed: string
+    gamesPlayed: string
+    score: string
+    wins: string
+    draws: string
+    losses: string
+    byes: string
+    lastPlayed: string
+    historyTitle: string
+    noHistory: string
   }
   standings: {
     title: string
@@ -144,6 +164,7 @@ export type TranslationSet = {
     roundComplete: string
     resultsEntered: (entered: number, target: number) => string
     archivedRound: (round: number) => string
+    archivedRoundEditable: (round: number) => string
     waiting: string
     complete: string
     incomplete: string
@@ -156,6 +177,7 @@ export type TranslationSet = {
     allowedResultsTitle: string
     allowedResultsBody: string
     resultForBoard: (board: number) => string
+    archivedEditWarning: string
   }
   actions: {
     completedMessage: (totalRounds: number) => string
@@ -222,6 +244,7 @@ export const translations: Record<Language, TranslationSet> = {
       dashboard: 'Dashboard',
       tournaments: 'Tournaments',
       standings: 'Standings',
+      statistics: 'Statistics',
     },
     tournaments: {
       directoryEyebrow: 'Multi Swiss',
@@ -291,6 +314,9 @@ export const translations: Record<Language, TranslationSet> = {
       save: 'Save',
       cancel: 'Cancel',
       active: 'Active',
+      libraryTitle: 'Player Library',
+      libraryEmpty: 'Players you use across tournaments will appear here.',
+      addFromLibrary: 'Add from library',
       joinsNextRound: (round) => `Joins in round ${round}`,
       droppedAfterRound: (round) => `Dropped after round ${round}`,
       errors: {
@@ -348,6 +374,7 @@ export const translations: Record<Language, TranslationSet> = {
       roundComplete: 'Round complete',
       resultsEntered: (entered, target) => `${entered} of ${target} results entered`,
       archivedRound: (round) => `Reviewing archived pairings for round ${round}`,
+      archivedRoundEditable: (round) => `Editing results in archived round ${round}`,
       waiting: 'Pairings will appear after the tournament starts.',
       complete: 'Complete',
       incomplete: 'Incomplete',
@@ -361,6 +388,7 @@ export const translations: Record<Language, TranslationSet> = {
       allowedResultsBody:
         'Manual entries are `1-0`, `0-1`, `0.5-0.5`, and `0-0`. A bye is stored automatically as `BYE` and cannot be edited.',
       resultForBoard: (board) => `Result for board ${board}`,
+      archivedEditWarning: 'Changing a past-round result removes every later round. You will need to regenerate them.',
     },
     actions: {
       completedMessage: (totalRounds) =>
@@ -370,6 +398,22 @@ export const translations: Record<Language, TranslationSet> = {
       generatePrompt: 'Generate the next round only after all current results are entered.',
       finalRoundComplete: 'Final Round Complete',
       generateNextRound: 'Generate Next Round',
+    },
+    statistics: {
+      title: 'Player Statistics',
+      subtitle: 'Inspect player performance across all tournaments saved for this account.',
+      empty: 'No player statistics yet. Finish or save tournaments with players to build the library.',
+      loading: 'Loading player statistics...',
+      tournamentsPlayed: 'Tournaments',
+      gamesPlayed: 'Games',
+      score: 'Score',
+      wins: 'Wins',
+      draws: 'Draws',
+      losses: 'Losses',
+      byes: 'Byes',
+      lastPlayed: 'Last played',
+      historyTitle: 'Tournament History',
+      noHistory: 'No completed stats are available for this player yet.',
     },
     auth: {
       eyebrow: 'Private Access',
@@ -425,6 +469,7 @@ export const translations: Record<Language, TranslationSet> = {
       dashboard: 'Dashboard',
       tournaments: 'Turniere',
       standings: 'Tabelle',
+      statistics: 'Statistik',
     },
     tournaments: {
       directoryEyebrow: 'Multi Swiss',
@@ -494,6 +539,9 @@ export const translations: Record<Language, TranslationSet> = {
       save: 'Speichern',
       cancel: 'Abbrechen',
       active: 'Aktiv',
+      libraryTitle: 'Spielerbibliothek',
+      libraryEmpty: 'Spieler, die du turnieruebergreifend verwendest, erscheinen hier.',
+      addFromLibrary: 'Aus Bibliothek hinzufuegen',
       joinsNextRound: (round) => `Steigt in Runde ${round} ein`,
       droppedAfterRound: (round) => `Nach Runde ${round} ausgeschieden`,
       errors: {
@@ -551,6 +599,7 @@ export const translations: Record<Language, TranslationSet> = {
       roundComplete: 'Runde abgeschlossen',
       resultsEntered: (entered, target) => `${entered} von ${target} Ergebnissen erfasst`,
       archivedRound: (round) => `Archivierte Paarungen fuer Runde ${round}`,
+      archivedRoundEditable: (round) => `Ergebnisse in archivierter Runde ${round} bearbeiten`,
       waiting: 'Die Paarungen erscheinen nach dem Turnierstart.',
       complete: 'Abgeschlossen',
       incomplete: 'Unvollstaendig',
@@ -564,6 +613,7 @@ export const translations: Record<Language, TranslationSet> = {
       allowedResultsBody:
         'Manuelle Eintraege sind `1-0`, `0-1`, `0.5-0.5` und `0-0`. Ein Freilos wird automatisch als `BYE` gespeichert und kann nicht bearbeitet werden.',
       resultForBoard: (board) => `Ergebnis fuer Brett ${board}`,
+      archivedEditWarning: 'Wenn du ein Ergebnis aus einer frueheren Runde aenderst, werden alle spaeteren Runden entfernt und muessen neu erzeugt werden.',
     },
     actions: {
       completedMessage: (totalRounds) =>
@@ -573,6 +623,22 @@ export const translations: Record<Language, TranslationSet> = {
       generatePrompt: 'Erzeuge die naechste Runde erst, wenn alle aktuellen Ergebnisse eingetragen sind.',
       finalRoundComplete: 'Letzte Runde abgeschlossen',
       generateNextRound: 'Naechste Runde erzeugen',
+    },
+    statistics: {
+      title: 'Spielerstatistik',
+      subtitle: 'Leistungen der Spieler ueber alle fuer dieses Konto gespeicherten Turniere hinweg ansehen.',
+      empty: 'Noch keine Spielerstatistiken vorhanden. Speichere Turniere mit Spielern, um die Bibliothek aufzubauen.',
+      loading: 'Spielerstatistiken werden geladen...',
+      tournamentsPlayed: 'Turniere',
+      gamesPlayed: 'Partien',
+      score: 'Punkte',
+      wins: 'Siege',
+      draws: 'Remis',
+      losses: 'Niederlagen',
+      byes: 'Freilose',
+      lastPlayed: 'Zuletzt gespielt',
+      historyTitle: 'Turnierverlauf',
+      noHistory: 'Fuer diesen Spieler liegen noch keine auswertbaren Daten vor.',
     },
     auth: {
       eyebrow: 'Privater Zugang',

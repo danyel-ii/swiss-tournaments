@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { sql } from './db'
-import { getPasswordHashForUsername, isAllowedUsername, type AllowedUsername } from './config'
+import { sql } from './db.js'
+import { getPasswordHashForUsername, isAllowedUsername, type AllowedUsername } from './config.js'
 
 const SESSION_COOKIE_NAME = 'swiss_session'
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 14

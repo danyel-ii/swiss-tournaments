@@ -40,7 +40,11 @@ export function createDefaultTournament(options: CreateTournamentOptions = {}): 
   }
 }
 
-export function addPlayer(tournament: Tournament, name: string): Tournament {
+export function addPlayer(
+  tournament: Tournament,
+  name: string,
+  libraryPlayerId: string | null = null,
+): Tournament {
   if (tournament.status === 'completed') {
     return tournament
   }
@@ -55,6 +59,7 @@ export function addPlayer(tournament: Tournament, name: string): Tournament {
     tournament.players.reduce((maxSeed, player) => Math.max(maxSeed, player.seed), 0) + 1
   const player: Player = {
     id: crypto.randomUUID(),
+    libraryPlayerId,
     name: trimmedName,
     seed: nextSeed,
     enteredRound: tournament.status === 'setup' ? 1 : tournament.currentRound + 1,
@@ -211,31 +216,65 @@ export function setMatchResult(
   matchId: string,
   result: ManualMatchResult,
 ): Tournament {
-  if (tournament.status !== 'in_progress') {
+  if (
+    tournament.status !== 'in_progress' &&
+    tournament.status !== 'completed'
+  ) {
     return tournament
   }
 
-  const currentRoundMatches = getCurrentRoundMatches(tournament)
+  const targetMatch = tournament.matches.find((match) => match.id === matchId)
 
-  if (!currentRoundMatches.some((match) => match.id === matchId)) {
+  if (!targetMatch || targetMatch.isBye) {
     return tournament
   }
 
-  const nextTournament = withUpdatedTimestamp({
+  if (targetMatch.round > tournament.currentRound) {
+    return tournament
+  }
+
+  if (targetMatch.round === tournament.currentRound) {
+    const currentRoundMatches = getCurrentRoundMatches(tournament)
+
+    if (!currentRoundMatches.some((match) => match.id === matchId)) {
+      return tournament
+    }
+
+    const nextTournament = withUpdatedTimestamp({
+      ...tournament,
+      matches: tournament.matches.map((match) => {
+        if (match.id !== matchId) {
+          return match
+        }
+
+        return {
+          ...match,
+          result,
+        }
+      }),
+      status: 'in_progress',
+    })
+
+    return syncTournamentStatus(nextTournament)
+  }
+
+  const rewoundTournament = withUpdatedTimestamp({
     ...tournament,
-    matches: tournament.matches.map((match) => {
-      if (match.id !== matchId || match.isBye) {
-        return match
-      }
-
-      return {
-        ...match,
-        result,
-      }
-    }),
+    currentRound: targetMatch.round,
+    status: 'in_progress',
+    matches: tournament.matches
+      .filter((match) => match.round <= targetMatch.round)
+      .map((match) =>
+        match.id === matchId
+          ? {
+              ...match,
+              result,
+            }
+          : match,
+      ),
   })
 
-  return syncTournamentStatus(nextTournament)
+  return syncTournamentStatus(rewoundTournament)
 }
 
 export function generateNextRound(tournament: Tournament): Tournament {

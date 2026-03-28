@@ -14,3 +14,61 @@ create table if not exists workspaces (
   payload jsonb not null,
   updated_at timestamptz not null default now()
 );
+
+create table if not exists player_library (
+  id text primary key,
+  username text not null check (username in ('kusselberg', 'schachmagie', 'daniel')),
+  normalized_name text not null,
+  display_name text not null,
+  created_at timestamptz not null default now(),
+  unique (username, normalized_name)
+);
+
+create index if not exists player_library_username_idx on player_library (username);
+
+create table if not exists tournament_records (
+  tournament_id text primary key,
+  username text not null check (username in ('kusselberg', 'schachmagie', 'daniel')),
+  name text not null,
+  status text not null,
+  total_rounds integer not null,
+  current_round integer not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create index if not exists tournament_records_username_idx on tournament_records (username);
+
+create table if not exists tournament_player_entries (
+  tournament_id text not null references tournament_records(tournament_id) on delete cascade,
+  username text not null check (username in ('kusselberg', 'schachmagie', 'daniel')),
+  tournament_player_id text not null,
+  library_player_id text references player_library(id),
+  name_snapshot text not null,
+  seed integer not null,
+  entered_round integer not null,
+  dropped_after_round integer,
+  primary key (tournament_id, tournament_player_id)
+);
+
+create index if not exists tournament_player_entries_username_idx on tournament_player_entries (username);
+create index if not exists tournament_player_entries_library_idx on tournament_player_entries (library_player_id);
+
+create table if not exists tournament_match_entries (
+  tournament_id text not null references tournament_records(tournament_id) on delete cascade,
+  username text not null check (username in ('kusselberg', 'schachmagie', 'daniel')),
+  match_id text not null,
+  round integer not null,
+  board integer not null,
+  white_tournament_player_id text not null,
+  black_tournament_player_id text,
+  white_library_player_id text,
+  black_library_player_id text,
+  result text,
+  is_bye boolean not null,
+  primary key (tournament_id, match_id)
+);
+
+create index if not exists tournament_match_entries_username_idx on tournament_match_entries (username);
+create index if not exists tournament_match_entries_white_library_idx on tournament_match_entries (white_library_player_id);
+create index if not exists tournament_match_entries_black_library_idx on tournament_match_entries (black_library_player_id);

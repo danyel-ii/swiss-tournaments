@@ -2,10 +2,13 @@ import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
 import { LoginView } from './components/LoginView'
 import { StandingsFocusView } from './components/StandingsFocusView'
+import { StatisticsView } from './components/StatisticsView'
 import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
 import { ViewTabs } from './components/ViewTabs'
 import { useAuth } from './hooks/useAuth'
+import { usePlayerLibrary } from './hooks/usePlayerLibrary'
+import { usePlayerStats } from './hooks/usePlayerStats'
 import { useI18n } from './useI18n'
 import {
   getCurrentRoundMatches,
@@ -17,6 +20,7 @@ import {
   isCurrentRoundComplete,
 } from './core/ranking'
 import { type TournamentAction, useTournament } from './hooks/useTournament'
+import type { LibraryPlayer } from './types/library'
 import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
 import { downloadTournamentExport } from './utils/export'
@@ -29,8 +33,15 @@ interface TournamentWorkspaceProps {
   dispatch: Dispatch<TournamentAction>
   syncError: string | null
   onLogout: () => void
-  activeView: 'dashboard' | 'standings' | 'tournaments'
-  setActiveView: (view: 'dashboard' | 'standings' | 'tournaments') => void
+  libraryPlayers: LibraryPlayer[]
+  libraryLoading: boolean
+  statisticsPlayers: ReturnType<typeof usePlayerStats>['players']
+  statisticsDetail: ReturnType<typeof usePlayerStats>['detail']
+  statisticsLoading: boolean
+  statisticsError: string | null
+  onSelectStatsPlayer: (playerId: string) => void
+  activeView: 'dashboard' | 'standings' | 'tournaments' | 'statistics'
+  setActiveView: (view: 'dashboard' | 'standings' | 'tournaments' | 'statistics') => void
 }
 
 function TournamentWorkspace({
@@ -41,6 +52,13 @@ function TournamentWorkspace({
   dispatch,
   syncError,
   onLogout,
+  libraryPlayers,
+  libraryLoading,
+  statisticsPlayers,
+  statisticsDetail,
+  statisticsLoading,
+  statisticsError,
+  onSelectStatsPlayer,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -196,6 +214,14 @@ function TournamentWorkspace({
             currentRound={tournament.currentRound}
             totalRounds={tournament.totalRounds}
           />
+        ) : activeView === 'statistics' ? (
+          <StatisticsView
+            players={statisticsPlayers}
+            detail={statisticsDetail}
+            loading={statisticsLoading}
+            error={statisticsError}
+            onSelectPlayer={onSelectStatsPlayer}
+          />
         ) : (
           <DashboardView
             tournament={tournament}
@@ -209,6 +235,8 @@ function TournamentWorkspace({
             resultTarget={resultTarget}
             roundComplete={roundComplete}
             roundsError={roundsError}
+            libraryPlayers={libraryPlayers}
+            libraryLoading={libraryLoading}
             playerName={playerName}
             playerError={playerError}
             duplicateWarning={duplicateWarning}
@@ -234,6 +262,9 @@ function TournamentWorkspace({
               }
             }}
             onAddPlayer={handleAddPlayer}
+            onAddLibraryPlayer={(player) =>
+              dispatch({ type: 'ADD_PLAYER', payload: { name: player.name, libraryPlayerId: player.id } })
+            }
             onRenamePlayer={(playerId, name) =>
               dispatch({ type: 'RENAME_PLAYER', payload: { playerId, name } })
             }
@@ -267,7 +298,17 @@ function App() {
   const { tournament, tournaments, activeTournamentId, dispatch, loading, error } = useTournament(
     auth.user !== null,
   )
-  const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments'>('dashboard')
+  const [activeView, setActiveView] = useState<'dashboard' | 'standings' | 'tournaments' | 'statistics'>('dashboard')
+  const [selectedStatsPlayerId, setSelectedStatsPlayerId] = useState<string | null>(null)
+  const workspaceRefreshKey = useMemo(
+    () =>
+      tournaments
+        .map((entry) => `${entry.id}:${entry.updatedAt}:${entry.players.length}:${entry.matches.length}`)
+        .join('|'),
+    [tournaments],
+  )
+  const playerLibrary = usePlayerLibrary(auth.user !== null, workspaceRefreshKey)
+  const playerStats = usePlayerStats(auth.user !== null, workspaceRefreshKey, selectedStatsPlayerId)
 
   if (auth.loading) {
     return <LoadingScreen label={t.auth.loadingSession} />
@@ -304,6 +345,13 @@ function App() {
       onLogout={() => {
         void auth.logout()
       }}
+      libraryPlayers={playerLibrary.players}
+      libraryLoading={playerLibrary.loading}
+      statisticsPlayers={playerStats.players}
+      statisticsDetail={playerStats.detail}
+      statisticsLoading={playerStats.loading}
+      statisticsError={playerStats.error}
+      onSelectStatsPlayer={setSelectedStatsPlayerId}
       activeView={activeView}
       setActiveView={setActiveView}
     />

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { clearSessionCookie, deleteSession } from '../../server/auth'
-import { sendJson, sendMethodNotAllowed, setNoStore } from '../../server/http'
+import { clearSessionCookie, deleteSession } from '../../server/auth.js'
+import { sendJson, sendMethodNotAllowed, setNoStore } from '../../server/http.js'
 
 function getSessionIdFromCookie(request: VercelRequest): string | null {
   const rawCookie = request.headers.cookie
