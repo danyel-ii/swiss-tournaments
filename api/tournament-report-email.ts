@@ -85,16 +85,16 @@ export default async function handler(
 
   const result = await sendTournamentReportEmail(username, requestBody)
 
-  if (result.ok) {
-    sendJson(response, 200, { ok: true })
+  if (result.ok === false) {
+    if (result.status === 429) {
+      response.setHeader('Retry-After', String(result.retryAfterSeconds))
+      sendJson(response, 429, { error: 'Tournament report was sent recently. Try again shortly.' })
+      return
+    }
+
+    sendJson(response, result.status, { error: result.error })
     return
   }
 
-  if (result.status === 429) {
-    response.setHeader('Retry-After', String(result.retryAfterSeconds))
-    sendJson(response, 429, { error: 'Tournament report was sent recently. Try again shortly.' })
-    return
-  }
-
-  sendJson(response, result.status, { error: result.error })
+  sendJson(response, 200, { ok: true })
 }
