@@ -1,7 +1,5 @@
 import { sql } from './db.js'
 import type { AllowedUsername } from './config.js'
-import type { Tournament } from '../src/types/tournament.js'
-import { buildTournamentReport } from '../src/utils/tournamentReport.js'
 
 const REPORT_EMAIL_TO = 'daniel.r.hawes@proton.me'
 const REPORT_COOLDOWN_MS = 1000 * 30
@@ -97,9 +95,13 @@ async function recordTournamentReportEmail(
 
 export async function sendTournamentReportEmail(
   username: AllowedUsername,
-  tournament: Tournament,
+  options: {
+    tournamentId: string
+    tournamentName: string
+    report: string
+  },
 ): Promise<{ ok: true } | { ok: false; status: 429; retryAfterSeconds: number } | { ok: false; status: 503; error: string } | { ok: false; status: 502; error: string }> {
-  const cooldownState = await getTournamentReportCooldownState(username, tournament.id)
+  const cooldownState = await getTournamentReportCooldownState(username, options.tournamentId)
 
   if (cooldownState.blocked) {
     return { ok: false, status: 429, retryAfterSeconds: cooldownState.retryAfterSeconds }
@@ -116,8 +118,8 @@ export async function sendTournamentReportEmail(
     }
   }
 
-  const report = buildTournamentReport(tournament)
-  const subject = `${tournament.name} Tournament Report`
+  const report = options.report
+  const subject = `${options.tournamentName} Tournament Report`
   const html = [
     '<div style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap;">',
     escapeHtml(report),
@@ -149,7 +151,7 @@ export async function sendTournamentReportEmail(
     }
   }
 
-  await recordTournamentReportEmail(username, tournament.id)
+  await recordTournamentReportEmail(username, options.tournamentId)
 
   return { ok: true }
 }

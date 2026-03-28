@@ -28,6 +28,7 @@ import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
 import { apiRequest } from './api/client'
 import { downloadTournamentExport } from './utils/export'
+import { buildTournamentReport } from './utils/tournamentReport'
 
 interface TournamentWorkspaceProps {
   username: string
@@ -459,9 +460,15 @@ function App() {
   const playerStats = usePlayerStats(auth.user !== null, workspaceRefreshKey, selectedStatsPlayerId)
 
   const emailTournamentReport = async (tournament: Tournament) => {
+    const report = buildTournamentReport(tournament)
+
     await apiRequest<{ ok: true }>('/api/tournament-report-email', {
       method: 'POST',
-      body: JSON.stringify({ tournament }),
+      body: JSON.stringify({
+        tournamentId: tournament.id,
+        tournamentName: tournament.name,
+        report,
+      }),
     })
   }
 
