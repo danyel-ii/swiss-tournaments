@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
-import { sendJson, sendMethodNotAllowed, setNoStore } from '../server/http.js'
+import { sendJson, sendMethodNotAllowed, setNoStore, requireTrustedOrigin } from '../server/http.js'
 import { deletePlayerStats, getPlayerStatsDetail, listPlayerStats } from '../server/library.js'
 
 export default async function handler(
@@ -18,6 +18,10 @@ export default async function handler(
     typeof request.query.playerId === 'string' ? request.query.playerId : null
 
   if (request.method === 'DELETE') {
+    if (!requireTrustedOrigin(request, response)) {
+      return
+    }
+
     if (!playerId) {
       sendJson(response, 400, { error: 'playerId is required' })
       return

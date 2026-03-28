@@ -5,20 +5,24 @@ import { useI18n } from '../useI18n'
 interface TournamentControlsProps {
   tournament: Tournament
   roundsError: string | null
+  sendingReportEmail: boolean
   onNameChange: (value: string) => void
   onRoundsChange: (value: number) => void
   onStart: () => void
   onExport: () => void
+  onEmailReport: () => void
   onReset: () => void
 }
 
 export function TournamentControls({
   tournament,
   roundsError,
+  sendingReportEmail,
   onNameChange,
   onRoundsChange,
   onStart,
   onExport,
+  onEmailReport,
   onReset,
 }: TournamentControlsProps) {
   const { t } = useI18n()
@@ -31,6 +35,7 @@ export function TournamentControls({
     tournament.totalRounds <= 20
   const canExport =
     tournament.players.length > 0 || tournament.matches.length > 0
+  const canEmailReport = canExport && !sendingReportEmail
 
   const handleRoundsInputChange = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '')
@@ -117,6 +122,15 @@ export function TournamentControls({
             className="theme-button-aqua font-display rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed"
           >
             {t.controls.exportReport}
+          </button>
+
+          <button
+            type="button"
+            onClick={onEmailReport}
+            disabled={!canEmailReport}
+            className="theme-button-aqua font-display rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed"
+          >
+            {sendingReportEmail ? t.controls.emailReportSending : t.controls.emailReport}
           </button>
 
           <button

@@ -20,6 +20,7 @@ interface DashboardViewProps {
   resultTarget: number
   roundComplete: boolean
   roundsError: string | null
+  sendingReportEmail: boolean
   libraryPlayers: LibraryPlayer[]
   libraryLoading: boolean
   playerName: string
@@ -34,6 +35,7 @@ interface DashboardViewProps {
   onRoundsChange: (value: number) => void
   onStart: () => void
   onExport: () => void
+  onEmailReport: () => void
   onReset: () => void
   onSelectRound: (round: number) => void
   onPlayerNameChange: (value: string) => void
@@ -57,6 +59,7 @@ export function DashboardView({
   resultTarget,
   roundComplete,
   roundsError,
+  sendingReportEmail,
   libraryPlayers,
   libraryLoading,
   playerName,
@@ -71,6 +74,7 @@ export function DashboardView({
   onRoundsChange,
   onStart,
   onExport,
+  onEmailReport,
   onReset,
   onSelectRound,
   onPlayerNameChange,
@@ -87,10 +91,12 @@ export function DashboardView({
         key={`${tournament.id}:${tournament.name}`}
         tournament={tournament}
         roundsError={roundsError}
+        sendingReportEmail={sendingReportEmail}
         onNameChange={onNameChange}
         onRoundsChange={onRoundsChange}
         onStart={onStart}
         onExport={onExport}
+        onEmailReport={onEmailReport}
         onReset={onReset}
       />
 

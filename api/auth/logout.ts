@@ -1,21 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { clearSessionCookie, deleteSession } from '../../server/auth.js'
-import { sendJson, sendMethodNotAllowed, setNoStore } from '../../server/http.js'
-
-function getSessionIdFromCookie(request: VercelRequest): string | null {
-  const rawCookie = request.headers.cookie
-
-  if (!rawCookie) {
-    return null
-  }
-
-  const cookie = rawCookie
-    .split(';')
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith('swiss_session='))
-
-  return cookie ? decodeURIComponent(cookie.slice('swiss_session='.length)) : null
-}
+import { clearSessionCookie, deleteSession, getSessionIdFromRequest } from '../../server/auth.js'
+import { sendJson, sendMethodNotAllowed, setNoStore, requireTrustedOrigin } from '../../server/http.js'
 
 export default async function handler(
   request: VercelRequest,
@@ -28,7 +13,11 @@ export default async function handler(
     return
   }
 
-  const sessionId = getSessionIdFromCookie(request)
+  if (!requireTrustedOrigin(request, response)) {
+    return
+  }
+
+  const sessionId = getSessionIdFromRequest(request)
 
   if (sessionId) {
     await deleteSession(sessionId)

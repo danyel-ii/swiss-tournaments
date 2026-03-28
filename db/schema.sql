@@ -9,6 +9,16 @@ create table if not exists sessions (
 
 create index if not exists sessions_expires_at_idx on sessions (expires_at);
 
+create table if not exists login_throttles (
+  scope text not null check (scope in ('ip', 'username')),
+  throttle_key text not null,
+  failure_count integer not null,
+  first_failure_at timestamptz not null,
+  blocked_until timestamptz,
+  updated_at timestamptz not null default now(),
+  primary key (scope, throttle_key)
+);
+
 create table if not exists workspaces (
   username text primary key check (username in ('kusselberg', 'schachmagie', 'danyel-ii')),
   payload jsonb not null,
@@ -72,3 +82,10 @@ create table if not exists tournament_match_entries (
 create index if not exists tournament_match_entries_username_idx on tournament_match_entries (username);
 create index if not exists tournament_match_entries_white_library_idx on tournament_match_entries (white_library_player_id);
 create index if not exists tournament_match_entries_black_library_idx on tournament_match_entries (black_library_player_id);
+
+create table if not exists tournament_report_emails (
+  username text not null check (username in ('kusselberg', 'schachmagie', 'danyel-ii')),
+  tournament_id text not null,
+  last_sent_at timestamptz not null default now(),
+  primary key (username, tournament_id)
+);

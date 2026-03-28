@@ -1,7 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
 import { sql } from '../server/db.js'
-import { sendJson, sendMethodNotAllowed, setNoStore, parseJsonBody } from '../server/http.js'
+import {
+  sendJson,
+  sendMethodNotAllowed,
+  setNoStore,
+  requireTrustedOrigin,
+  tryParseJsonBody,
+} from '../server/http.js'
 import { syncWorkspaceProjection } from '../server/library.js'
 import { createDefaultTournamentCollection } from '../server/workspace.js'
 import type { TournamentCollection } from '../src/types/workspace.js'
@@ -70,7 +76,18 @@ export default async function handler(
   }
 
   if (request.method === 'PUT') {
-    const payload = normalizeCollection(parseJsonBody<TournamentCollection>(request))
+    if (!requireTrustedOrigin(request, response)) {
+      return
+    }
+
+    const parsedBody = tryParseJsonBody<TournamentCollection>(request)
+
+    if (!parsedBody.ok) {
+      sendJson(response, 400, { error: 'Invalid JSON body' })
+      return
+    }
+
+    const payload = normalizeCollection(parsedBody.value)
 
     await sql`
       insert into workspaces (username, payload, updated_at)
@@ -85,6 +102,10 @@ export default async function handler(
   }
 
   if (request.method === 'DELETE') {
+    if (!requireTrustedOrigin(request, response)) {
+      return
+    }
+
     const scope = typeof request.query.scope === 'string' ? request.query.scope : null
     const tournamentId =
       typeof request.query.tournamentId === 'string' ? request.query.tournamentId : null

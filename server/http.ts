@@ -28,6 +28,57 @@ export function parseJsonBody<T>(request: VercelRequest): T | null {
   return request.body as T
 }
 
+export function tryParseJsonBody<T>(
+  request: VercelRequest,
+): { ok: true; value: T | null } | { ok: false } {
+  try {
+    return { ok: true, value: parseJsonBody<T>(request) }
+  } catch {
+    return { ok: false }
+  }
+}
+
+function extractRequestOrigin(request: VercelRequest): URL | null {
+  const originHeader = request.headers.origin
+  const refererHeader = request.headers.referer
+  const rawValue =
+    typeof originHeader === 'string'
+      ? originHeader
+      : typeof refererHeader === 'string'
+        ? refererHeader
+        : null
+
+  if (!rawValue) {
+    return null
+  }
+
+  try {
+    return new URL(rawValue)
+  } catch {
+    return null
+  }
+}
+
+export function requireTrustedOrigin(
+  request: VercelRequest,
+  response: VercelResponse,
+): boolean {
+  const host = request.headers.host
+  const requestOrigin = extractRequestOrigin(request)
+
+  if (!host || !requestOrigin) {
+    sendJson(response, 403, { error: 'Forbidden origin' })
+    return false
+  }
+
+  if (requestOrigin.host !== host) {
+    sendJson(response, 403, { error: 'Forbidden origin' })
+    return false
+  }
+
+  return true
+}
+
 export function setNoStore(response: VercelResponse): void {
   response.setHeader('Cache-Control', 'no-store')
 }
