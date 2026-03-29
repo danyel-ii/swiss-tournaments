@@ -7,11 +7,6 @@ import {
 } from './ranking'
 import type { Match, Player, PlayerColor, PlayerStanding, Tournament } from '../types/tournament'
 
-interface PairingPlan {
-  pairs: Array<[PlayerStanding, PlayerStanding]>
-  repeatCount: number
-}
-
 interface CandidatePair {
   opponent: PlayerStanding
   repeatCount: number
@@ -179,49 +174,141 @@ function buildCandidatePairs(
     })
 }
 
-function pairGroupWithBacktracking(
+function compareStandings(left: PlayerStanding, right: PlayerStanding): number {
+  if (left.rank !== right.rank) {
+    return left.rank - right.rank
+  }
+
+  if (left.seed !== right.seed) {
+    return left.seed - right.seed
+  }
+
+  return left.playerId.localeCompare(right.playerId)
+}
+
+function findMostConstrainedPlayer(
   players: PlayerStanding[],
   matches: Match[],
   allowRepeats: boolean,
-): PairingPlan | null {
-  if (players.length === 0) {
-    return { pairs: [], repeatCount: 0 }
-  }
+): PlayerStanding {
+  let bestPlayer = players[0]
+  let bestCandidateCount = Number.POSITIVE_INFINITY
 
-  const [player, ...rest] = players
-  const candidates = buildCandidatePairs(player, rest, matches, allowRepeats)
-  let bestPlan: PairingPlan | null = null
-
-  for (const candidate of candidates) {
-    const remaining = rest.filter(
-      (entry) => entry.playerId !== candidate.opponent.playerId,
-    )
-    const remainderPlan = pairGroupWithBacktracking(
-      remaining,
+  for (const player of players) {
+    const candidates = buildCandidatePairs(
+      player,
+      players.filter((entry) => entry.playerId !== player.playerId),
       matches,
       allowRepeats,
     )
 
-    if (!remainderPlan) {
-      continue
-    }
-
-    const nextPlan: PairingPlan = {
-      pairs: [[player, candidate.opponent], ...remainderPlan.pairs],
-      repeatCount: candidate.repeatCount + remainderPlan.repeatCount,
-    }
-
-    if (
-      !bestPlan ||
-      nextPlan.repeatCount < bestPlan.repeatCount ||
-      (nextPlan.repeatCount === bestPlan.repeatCount &&
-        comparePairSequence(nextPlan.pairs, bestPlan.pairs) < 0)
-    ) {
-      bestPlan = nextPlan
+    if (candidates.length < bestCandidateCount) {
+      bestPlayer = player
+      bestCandidateCount = candidates.length
     }
   }
 
-  return bestPlan
+  return bestPlayer
+}
+
+function scoreGreedyCandidate(
+  candidate: CandidatePair,
+  remaining: PlayerStanding[],
+  matches: Match[],
+  allowRepeats: boolean,
+): number[] {
+  const nextRemaining = remaining.filter(
+    (entry) => entry.playerId !== candidate.opponent.playerId,
+  )
+
+  if (nextRemaining.length === 0) {
+    return [0, candidate.scoreGap, candidate.repeatCount, candidate.rankGap, candidate.opponent.seed]
+  }
+
+  const nextPlayer = findMostConstrainedPlayer(nextRemaining, matches, allowRepeats)
+  const nextCandidates = buildCandidatePairs(
+    nextPlayer,
+    nextRemaining.filter((entry) => entry.playerId !== nextPlayer.playerId),
+    matches,
+    allowRepeats,
+  )
+
+  return [
+    nextCandidates.length === 0 ? 1 : 0,
+    candidate.scoreGap,
+    candidate.repeatCount,
+    candidate.rankGap,
+    candidate.opponent.seed,
+  ]
+}
+
+function buildGreedyPairingPlan(
+  players: PlayerStanding[],
+  matches: Match[],
+  allowRepeats: boolean,
+): { pairs: Array<[PlayerStanding, PlayerStanding]>; repeatCount: number } | null {
+  const remaining = [...players].sort(compareStandings)
+  const pairs: Array<[PlayerStanding, PlayerStanding]> = []
+  let repeatCount = 0
+
+  while (remaining.length > 1) {
+    const player = findMostConstrainedPlayer(remaining, matches, allowRepeats)
+    const playerIndex = remaining.findIndex((entry) => entry.playerId === player.playerId)
+    remaining.splice(playerIndex, 1)
+
+    const candidates = buildCandidatePairs(player, remaining, matches, allowRepeats)
+
+    if (candidates.length === 0) {
+      return null
+    }
+
+    candidates.sort((left, right) => {
+      const comparison = compareTuples(
+        scoreGreedyCandidate(left, remaining, matches, allowRepeats),
+        scoreGreedyCandidate(right, remaining, matches, allowRepeats),
+      )
+
+      if (comparison !== 0) {
+        return comparison
+      }
+
+      return 0
+    })
+
+    const chosenCandidate = candidates[0]
+    const opponentIndex = remaining.findIndex(
+      (entry) => entry.playerId === chosenCandidate.opponent.playerId,
+    )
+
+    if (opponentIndex < 0) {
+      return null
+    }
+
+    remaining.splice(opponentIndex, 1)
+    pairs.push([player, chosenCandidate.opponent])
+    repeatCount += chosenCandidate.repeatCount
+  }
+
+  return { pairs, repeatCount }
+}
+
+function createAttemptOrders(players: PlayerStanding[]): PlayerStanding[][] {
+  const base = [...players].sort(compareStandings)
+  const attempts: PlayerStanding[][] = [base]
+
+  if (base.length > 2) {
+    attempts.push([base[1], base[0], ...base.slice(2)])
+  }
+
+  if (base.length > 4) {
+    attempts.push([...base.slice(2, 4), ...base.slice(0, 2), ...base.slice(4)])
+  }
+
+  if (base.length > 6) {
+    attempts.push([...base.slice(0, 1), ...base.slice(3, 6), ...base.slice(1, 3), ...base.slice(6)])
+  }
+
+  return attempts
 }
 
 function comparePairSequence(
@@ -251,19 +338,43 @@ function generateSwissPairs(
 ): Array<[PlayerStanding, PlayerStanding]> {
   const scoreGroups = groupPlayersByScore(players)
   const flattenedPlayers = [...scoreGroups.values()].flatMap((group) => group)
-  const noRepeatPlan = pairGroupWithBacktracking(flattenedPlayers, matches, false)
-
-  if (noRepeatPlan) {
-    return noRepeatPlan.pairs
+  type GreedyPairingPlan = {
+    pairs: Array<[PlayerStanding, PlayerStanding]>
+    repeatCount: number
   }
 
-  const repeatPlan = pairGroupWithBacktracking(flattenedPlayers, matches, true)
+  let bestPlan: GreedyPairingPlan | null = null
 
-  if (!repeatPlan) {
+  for (const allowRepeats of [false, true]) {
+    for (const attempt of createAttemptOrders(flattenedPlayers)) {
+      const nextPlan = buildGreedyPairingPlan(attempt, matches, allowRepeats)
+
+      if (!nextPlan) {
+        continue
+      }
+
+      if (
+        !bestPlan ||
+        nextPlan.repeatCount < bestPlan.repeatCount ||
+        (nextPlan.repeatCount === bestPlan.repeatCount &&
+          comparePairSequence(nextPlan.pairs, bestPlan.pairs) < 0)
+      ) {
+        bestPlan = nextPlan
+      }
+    }
+
+    if (bestPlan && bestPlan.repeatCount === 0) {
+      return bestPlan.pairs
+    }
+  }
+
+  if (!bestPlan) {
     throw new Error('Unable to generate Swiss pairings')
   }
 
-  return repeatPlan.pairs
+  const finalPlan: GreedyPairingPlan = bestPlan
+
+  return finalPlan.pairs
 }
 
 function selectByePlayer(

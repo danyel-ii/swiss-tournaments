@@ -238,6 +238,59 @@ describe('pairings', () => {
 
     expect(byeMatch?.whitePlayerId).not.toBe(players[4].id)
   })
+
+  it('generates round 2 pairings for a large field with late entrants without hanging', () => {
+    const roundOnePlayers = createPlayers(
+      Array.from({ length: 26 }, (_, index) => `Player ${index + 1}`),
+    )
+    const lateEntrants: Player[] = Array.from({ length: 3 }, (_, index) => ({
+      id: `late-player-${index + 1}`,
+      libraryPlayerId: null,
+      name: `Late ${index + 1}`,
+      seed: roundOnePlayers.length + index + 1,
+      enteredRound: 2,
+      droppedAfterRound: null,
+    }))
+    const players = [...roundOnePlayers, ...lateEntrants]
+    const matches: Match[] = []
+
+    for (let index = 0; index < 11; index += 1) {
+      matches.push(
+        createMatch({
+          id: `win-${index + 1}`,
+          round: 1,
+          board: index + 1,
+          whitePlayerId: roundOnePlayers[index * 2].id,
+          blackPlayerId: roundOnePlayers[index * 2 + 1].id,
+          result: '1-0',
+        }),
+      )
+    }
+
+    for (let index = 0; index < 2; index += 1) {
+      const baseIndex = 22 + index * 2
+      matches.push(
+        createMatch({
+          id: `draw-${index + 1}`,
+          round: 1,
+          board: matches.length + 1,
+          whitePlayerId: roundOnePlayers[baseIndex].id,
+          blackPlayerId: roundOnePlayers[baseIndex + 1].id,
+          result: '0.5-0.5',
+        }),
+      )
+    }
+
+    const pairings = generateSwissRoundPairings(players, matches, 2)
+    const byeMatches = pairings.filter((match) => match.isBye)
+    const pairedPlayerIds = new Set(
+      pairings.flatMap((match) => [match.whitePlayerId, match.blackPlayerId]).filter(Boolean),
+    )
+
+    expect(pairings).toHaveLength(15)
+    expect(byeMatches).toHaveLength(1)
+    expect(pairedPlayerIds.size).toBe(29)
+  })
 })
 
 describe('tournament progression', () => {
