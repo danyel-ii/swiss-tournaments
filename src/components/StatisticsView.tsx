@@ -180,17 +180,46 @@ export function StatisticsView({
                   </button>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                  {summaryCards.map(([label, value]) => (
-                    <article key={label} className="theme-muted-panel min-w-0 rounded-3xl px-4 py-4">
+                <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0">
                       <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                        {label}
+                        {t.statistics.managePlayer}
                       </p>
-                      <p className="theme-heading mt-2 break-words font-display text-2xl font-semibold">
-                        {value}
+                      <p className="theme-heading mt-2 break-words font-display text-xl font-semibold">
+                        {selectedSummary.name}
                       </p>
-                    </article>
-                  ))}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => {
+                        const nextSelected =
+                          players.find((entry) => entry.playerId !== selectedSummary.playerId)?.playerId ?? null
+                        const confirmed = window.confirm(
+                          t.statistics.deletePlayerConfirm(selectedSummary.name),
+                        )
+
+                        if (!confirmed) {
+                          return
+                        }
+
+                        void onDeletePlayer(selectedSummary.playerId).then(() => {
+                          setSelectedPlayerId(nextSelected)
+                          onSelectPlayer(nextSelected)
+                        })
+                      }}
+                      className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {t.statistics.deletePlayer}
+                    </button>
+                  </div>
+                  <p className="theme-copy mt-3 break-words font-data text-sm">
+                    {t.statistics.byeHistory}: {detail.byeHistory.length}
+                  </p>
+                  <p className="theme-copy mt-1 break-words font-data text-sm">
+                    {t.statistics.headToHeadTitle}: {detail.headToHead.length}
+                  </p>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -208,48 +237,19 @@ export function StatisticsView({
                       {t.statistics.winRateByColor}: {t.statistics.white} {formatPercent(selectedSummary.winRateAsWhite)} · {t.statistics.black} {formatPercent(selectedSummary.winRateAsBlack)}
                     </p>
                   </div>
+                </div>
 
-                  <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div className="min-w-0">
-                        <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                          {t.statistics.managePlayer}
-                        </p>
-                        <p className="theme-heading mt-2 break-words font-display text-xl font-semibold">
-                          {selectedSummary.name}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        disabled={deleting}
-                        onClick={() => {
-                          const nextSelected =
-                            players.find((entry) => entry.playerId !== selectedSummary.playerId)?.playerId ?? null
-                          const confirmed = window.confirm(
-                            t.statistics.deletePlayerConfirm(selectedSummary.name),
-                          )
-
-                          if (!confirmed) {
-                            return
-                          }
-
-                          void onDeletePlayer(selectedSummary.playerId).then(() => {
-                            setSelectedPlayerId(nextSelected)
-                            onSelectPlayer(nextSelected)
-                          })
-                        }}
-                        className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {t.statistics.deletePlayer}
-                      </button>
-                    </div>
-                    <p className="theme-copy mt-3 break-words font-data text-sm">
-                      {t.statistics.byeHistory}: {detail.byeHistory.length}
-                    </p>
-                    <p className="theme-copy mt-1 break-words font-data text-sm">
-                      {t.statistics.headToHeadTitle}: {detail.headToHead.length}
-                    </p>
-                  </div>
+                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                  {summaryCards.map(([label, value]) => (
+                    <article key={label} className="theme-muted-panel min-w-0 rounded-3xl px-4 py-4">
+                      <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                        {label}
+                      </p>
+                      <p className="theme-heading mt-2 break-words font-display text-2xl font-semibold">
+                        {value}
+                      </p>
+                    </article>
+                  ))}
                 </div>
 
                 <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
