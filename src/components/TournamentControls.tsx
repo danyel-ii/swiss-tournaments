@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Tournament } from '../types/tournament'
+import type { PairingAlgorithm, Tournament } from '../types/tournament'
 import { useI18n } from '../useI18n'
 
 interface TournamentControlsProps {
@@ -7,6 +7,7 @@ interface TournamentControlsProps {
   roundsError: string | null
   onNameChange: (value: string) => void
   onRoundsChange: (value: number) => void
+  onPairingAlgorithmChange: (value: PairingAlgorithm) => void
   onStart: () => void
   onExport: () => void
   onReset: () => void
@@ -17,6 +18,7 @@ export function TournamentControls({
   roundsError,
   onNameChange,
   onRoundsChange,
+  onPairingAlgorithmChange,
   onStart,
   onExport,
   onReset,
@@ -95,6 +97,19 @@ export function TournamentControls({
                 +
               </button>
             </div>
+          </label>
+
+          <label className="theme-label flex flex-col gap-2 text-sm font-medium">
+            <span className="font-display text-base font-semibold">{t.controls.pairingAlgorithm}</span>
+            <select
+              value={tournament.pairingAlgorithm}
+              disabled={!inSetup}
+              onChange={(event) => onPairingAlgorithmChange(event.target.value as PairingAlgorithm)}
+              className="theme-input font-data rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="greedy">{t.controls.pairingAlgorithmGreedy}</option>
+              <option value="blossom">{t.controls.pairingAlgorithmBlossom}</option>
+            </select>
           </label>
         </div>
 

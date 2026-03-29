@@ -11,6 +11,36 @@ import {
 import { syncWorkspaceProjection } from '../server/library.js'
 import { createDefaultTournamentCollection } from '../server/workspace.js'
 import type { TournamentCollection } from '../src/types/workspace.js'
+import type { Tournament } from '../src/types/tournament.js'
+
+function normalizeTournament(value: unknown): Tournament | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const candidate = value as Partial<Tournament>
+
+  if (
+    typeof candidate.id !== 'string' ||
+    typeof candidate.name !== 'string' ||
+    typeof candidate.totalRounds !== 'number' ||
+    typeof candidate.currentRound !== 'number' ||
+    (candidate.status !== 'setup' && candidate.status !== 'in_progress' && candidate.status !== 'completed') ||
+    !Array.isArray(candidate.players) ||
+    !Array.isArray(candidate.matches) ||
+    typeof candidate.createdAt !== 'string' ||
+    typeof candidate.updatedAt !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    ...candidate,
+    pairingAlgorithm:
+      candidate.pairingAlgorithm === 'blossom' ? 'blossom' : 'greedy',
+    version: 1,
+  } as Tournament
+}
 
 function normalizeCollection(value: unknown): TournamentCollection {
   const fallback = createDefaultTournamentCollection()
@@ -25,10 +55,18 @@ function normalizeCollection(value: unknown): TournamentCollection {
     return fallback
   }
 
+  const tournaments = candidate.tournaments
+    .map((tournament) => normalizeTournament(tournament))
+    .filter((tournament): tournament is Tournament => tournament !== null)
+
+  if (tournaments.length === 0) {
+    return fallback
+  }
+
   return {
     activeTournamentId: candidate.activeTournamentId,
-    tournaments: candidate.tournaments,
-  } as TournamentCollection
+    tournaments,
+  }
 }
 
 function normalizeDeletedCollection(collection: TournamentCollection): TournamentCollection {

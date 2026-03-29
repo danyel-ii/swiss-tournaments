@@ -5,7 +5,7 @@ import {
   isCurrentRoundComplete,
 } from './ranking'
 import { generatePairings } from './swissPairing'
-import type { ManualMatchResult, Player, Tournament } from '../types/tournament'
+import type { ManualMatchResult, PairingAlgorithm, Player, Tournament } from '../types/tournament'
 
 function now(): string {
   return new Date().toISOString()
@@ -30,6 +30,7 @@ export function createDefaultTournament(options: CreateTournamentOptions = {}): 
     id: options.id ?? crypto.randomUUID(),
     name: options.name ?? 'Chess Tournament',
     totalRounds: 5,
+    pairingAlgorithm: 'greedy',
     currentRound: 0,
     status: 'setup',
     players: [],
@@ -174,6 +175,24 @@ export function setTotalRounds(
   return withUpdatedTimestamp({
     ...tournament,
     totalRounds,
+  })
+}
+
+export function setPairingAlgorithm(
+  tournament: Tournament,
+  pairingAlgorithm: PairingAlgorithm,
+): Tournament {
+  if (hasTournamentStarted(tournament)) {
+    return tournament
+  }
+
+  if (pairingAlgorithm !== 'greedy' && pairingAlgorithm !== 'blossom') {
+    return tournament
+  }
+
+  return withUpdatedTimestamp({
+    ...tournament,
+    pairingAlgorithm,
   })
 }
 

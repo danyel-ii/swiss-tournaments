@@ -6,6 +6,7 @@ const tournament: Tournament = {
   id: 't-1',
   name: 'Spring Open',
   totalRounds: 3,
+  pairingAlgorithm: 'greedy',
   currentRound: 2,
   status: 'in_progress',
   version: 1,

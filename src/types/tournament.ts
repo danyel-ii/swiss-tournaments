@@ -1,4 +1,5 @@
 export type TournamentStatus = 'setup' | 'in_progress' | 'completed'
+export type PairingAlgorithm = 'greedy' | 'blossom'
 
 export type ManualMatchResult = '1-0' | '0-1' | '0.5-0.5' | '0-0'
 export type MatchResult = ManualMatchResult | 'BYE'
@@ -27,6 +28,7 @@ export interface Tournament {
   id: string
   name: string
   totalRounds: number
+  pairingAlgorithm: PairingAlgorithm
   currentRound: number
   status: TournamentStatus
   players: Player[]

@@ -1,3 +1,4 @@
+import blossom from 'edmonds-blossom'
 import {
   getPlayerColorHistory,
   getPlayersEnteredByRound,
@@ -5,13 +6,26 @@ import {
   getStandings,
   hasPlayerReceivedBye,
 } from './ranking'
-import type { Match, Player, PlayerColor, PlayerStanding, Tournament } from '../types/tournament'
+import type { Match, PairingAlgorithm, Player, PlayerColor, PlayerStanding, Tournament } from '../types/tournament'
 
 interface CandidatePair {
   opponent: PlayerStanding
   repeatCount: number
   scoreGap: number
   rankGap: number
+}
+
+interface PairingPlan {
+  pairs: Array<[PlayerStanding, PlayerStanding]>
+  repeatCount: number
+}
+
+function hasZeroRepeatPlan(plan: PairingPlan | null): plan is PairingPlan {
+  return plan !== null && plan.repeatCount === 0
+}
+
+function getZeroRepeatPlan(plan: PairingPlan | null): PairingPlan | null {
+  return hasZeroRepeatPlan(plan) ? plan : null
 }
 
 function createMatch(params: {
@@ -76,6 +90,27 @@ function compareTuples(left: number[], right: number[]): number {
   }
 
   return 0
+}
+
+function scorePairEdge(
+  left: PlayerStanding,
+  right: PlayerStanding,
+  matches: Match[],
+  round: number,
+): number {
+  const repeatPenalty = havePlayedBefore(left.playerId, right.playerId, matches) ? 300000 : 0
+  const scoreGapPenalty = Math.abs(left.score - right.score) * 10000
+  const rankGapPenalty = Math.abs(left.rank - right.rank) * 100
+  const leftColorTuple = scoreColorOption(left, right, matches, round, round % 2 === 1)
+  const rightColorTuple = scoreColorOption(right, left, matches, round, round % 2 === 1)
+  const bestColorTuple = compareTuples(leftColorTuple, rightColorTuple) <= 0 ? leftColorTuple : rightColorTuple
+  const colorPenalty =
+    bestColorTuple[0] * 5000 +
+    bestColorTuple[1] * 2500 +
+    bestColorTuple[2] * 200 +
+    bestColorTuple[3] * 50
+
+  return Math.round(1_000_000 - repeatPenalty - scoreGapPenalty - rankGapPenalty - colorPenalty)
 }
 
 function assignColors(
@@ -311,6 +346,80 @@ function createAttemptOrders(players: PlayerStanding[]): PlayerStanding[][] {
   return attempts
 }
 
+function buildBlossomPairingPlan(
+  players: PlayerStanding[],
+  matches: Match[],
+  round: number,
+  allowRepeats: boolean,
+): PairingPlan | null {
+  const sortedPlayers = [...players].sort(compareStandings)
+  const edges: Array<[number, number, number]> = []
+
+  for (let leftIndex = 0; leftIndex < sortedPlayers.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < sortedPlayers.length; rightIndex += 1) {
+      const left = sortedPlayers[leftIndex]
+      const right = sortedPlayers[rightIndex]
+      const repeated = havePlayedBefore(left.playerId, right.playerId, matches)
+
+      if (!allowRepeats && repeated) {
+        continue
+      }
+
+      edges.push([leftIndex, rightIndex, scorePairEdge(left, right, matches, round)])
+    }
+  }
+
+  if (edges.length === 0) {
+    return null
+  }
+
+  const matching = blossom(edges) as number[]
+
+  if (!Array.isArray(matching) || matching.length < sortedPlayers.length) {
+    return null
+  }
+
+  const pairs: Array<[PlayerStanding, PlayerStanding]> = []
+  const visited = new Set<number>()
+  let repeatCount = 0
+
+  for (let index = 0; index < sortedPlayers.length; index += 1) {
+    if (visited.has(index)) {
+      continue
+    }
+
+    const partnerIndex = matching[index]
+
+    if (
+      typeof partnerIndex !== 'number' ||
+      partnerIndex < 0 ||
+      partnerIndex >= sortedPlayers.length ||
+      matching[partnerIndex] !== index
+    ) {
+      return null
+    }
+
+    visited.add(index)
+    visited.add(partnerIndex)
+
+    const left = sortedPlayers[index]
+    const right = sortedPlayers[partnerIndex]
+    const orderedPair: [PlayerStanding, PlayerStanding] =
+      compareStandings(left, right) <= 0 ? [left, right] : [right, left]
+
+    pairs.push(orderedPair)
+    repeatCount += Number(havePlayedBefore(left.playerId, right.playerId, matches))
+  }
+
+  if (visited.size !== sortedPlayers.length) {
+    return null
+  }
+
+  pairs.sort((left, right) => comparePairSequence([left], [right]))
+
+  return { pairs, repeatCount }
+}
+
 function comparePairSequence(
   left: Array<[PlayerStanding, PlayerStanding]>,
   right: Array<[PlayerStanding, PlayerStanding]>,
@@ -335,36 +444,49 @@ function comparePairSequence(
 function generateSwissPairs(
   players: PlayerStanding[],
   matches: Match[],
+  round: number,
+  pairingAlgorithm: PairingAlgorithm,
 ): Array<[PlayerStanding, PlayerStanding]> {
   const scoreGroups = groupPlayersByScore(players)
   const flattenedPlayers = [...scoreGroups.values()].flatMap((group) => group)
-  type GreedyPairingPlan = {
-    pairs: Array<[PlayerStanding, PlayerStanding]>
-    repeatCount: number
+  let bestPlan: PairingPlan | null = null
+
+  const considerPlan = (nextPlan: PairingPlan | null) => {
+    if (!nextPlan) {
+      return
+    }
+
+    if (
+      !bestPlan ||
+      nextPlan.repeatCount < bestPlan.repeatCount ||
+      (nextPlan.repeatCount === bestPlan.repeatCount &&
+        comparePairSequence(nextPlan.pairs, bestPlan.pairs) < 0)
+    ) {
+      bestPlan = nextPlan
+    }
   }
 
-  let bestPlan: GreedyPairingPlan | null = null
+  if (pairingAlgorithm === 'blossom') {
+    considerPlan(buildBlossomPairingPlan(flattenedPlayers, matches, round, false))
+
+    const blossomPerfectPlan = getZeroRepeatPlan(bestPlan)
+
+    if (blossomPerfectPlan) {
+      return blossomPerfectPlan.pairs
+    }
+
+    considerPlan(buildBlossomPairingPlan(flattenedPlayers, matches, round, true))
+  }
 
   for (const allowRepeats of [false, true]) {
     for (const attempt of createAttemptOrders(flattenedPlayers)) {
-      const nextPlan = buildGreedyPairingPlan(attempt, matches, allowRepeats)
-
-      if (!nextPlan) {
-        continue
-      }
-
-      if (
-        !bestPlan ||
-        nextPlan.repeatCount < bestPlan.repeatCount ||
-        (nextPlan.repeatCount === bestPlan.repeatCount &&
-          comparePairSequence(nextPlan.pairs, bestPlan.pairs) < 0)
-      ) {
-        bestPlan = nextPlan
-      }
+      considerPlan(buildGreedyPairingPlan(attempt, matches, allowRepeats))
     }
 
-    if (bestPlan && bestPlan.repeatCount === 0) {
-      return bestPlan.pairs
+    const greedyPerfectPlan = getZeroRepeatPlan(bestPlan)
+
+    if (greedyPerfectPlan) {
+      return greedyPerfectPlan.pairs
     }
   }
 
@@ -372,7 +494,7 @@ function generateSwissPairs(
     throw new Error('Unable to generate Swiss pairings')
   }
 
-  const finalPlan: GreedyPairingPlan = bestPlan
+  const finalPlan: PairingPlan = bestPlan
 
   return finalPlan.pairs
 }
@@ -447,6 +569,7 @@ export function generateSwissRoundPairings(
   players: Player[],
   matches: Match[],
   round: number,
+  pairingAlgorithm: PairingAlgorithm = 'greedy',
 ): Match[] {
   const standings = getStandings(players, matches)
   const eligiblePlayerIds = new Set(getPlayersEligibleForRound(players, round).map((player) => player.id))
@@ -460,7 +583,7 @@ export function generateSwissRoundPairings(
   const activePlayers = pairingPool.filter(
     (player) => player.playerId !== byePlayer?.playerId,
   )
-  const pairs = generateSwissPairs(activePlayers, matches)
+  const pairs = generateSwissPairs(activePlayers, matches, round, pairingAlgorithm)
   const roundMatches = pairs.map(([left, right], index) => {
     const colors = assignColors(left, right, matches, round)
 
@@ -499,5 +622,6 @@ export function generatePairings(tournament: Tournament): Match[] {
     getPlayersEnteredByRound(tournament.players, tournament.currentRound + 1),
     tournament.matches,
     tournament.currentRound + 1,
+    tournament.pairingAlgorithm,
   )
 }

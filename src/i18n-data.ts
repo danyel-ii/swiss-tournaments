@@ -61,6 +61,9 @@ export type TranslationSet = {
   controls: {
     tournamentName: string
     totalRounds: string
+    pairingAlgorithm: string
+    pairingAlgorithmGreedy: string
+    pairingAlgorithmBlossom: string
     roundsError: string
     decreaseRounds: string
     increaseRounds: string
@@ -335,6 +338,9 @@ export const translations: Record<Language, TranslationSet> = {
     controls: {
       tournamentName: 'Tournament name',
       totalRounds: 'Total rounds',
+      pairingAlgorithm: 'Pairing algorithm',
+      pairingAlgorithmGreedy: 'Greedy',
+      pairingAlgorithmBlossom: 'Graph Matching (Blossom)',
       roundsError: 'Rounds must be between 1 and 20',
       decreaseRounds: 'Decrease rounds',
       increaseRounds: 'Increase rounds',
@@ -624,6 +630,9 @@ export const translations: Record<Language, TranslationSet> = {
     controls: {
       tournamentName: 'Turniername',
       totalRounds: 'Anzahl Runden',
+      pairingAlgorithm: 'Paarungsalgorithmus',
+      pairingAlgorithmGreedy: 'Greedy',
+      pairingAlgorithmBlossom: 'Graph Matching (Blossom)',
       roundsError: 'Die Rundenzahl muss zwischen 1 und 20 liegen',
       decreaseRounds: 'Runden verringern',
       increaseRounds: 'Runden erhoehen',

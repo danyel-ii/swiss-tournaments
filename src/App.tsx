@@ -367,6 +367,9 @@ function TournamentWorkspace({
             onRoundsChange={(value) =>
               dispatch({ type: 'SET_TOTAL_ROUNDS', payload: { totalRounds: value } })
             }
+            onPairingAlgorithmChange={(value) =>
+              dispatch({ type: 'SET_PAIRING_ALGORITHM', payload: { pairingAlgorithm: value } })
+            }
             onStart={handleStart}
             onExport={() => downloadTournamentExport(tournament)}
             onReset={handleReset}

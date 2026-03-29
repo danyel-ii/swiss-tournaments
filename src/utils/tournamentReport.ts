@@ -155,6 +155,7 @@ export function buildTournamentReport(tournament: Tournament): string {
     '',
     `- Tournament ID: ${tournament.id}`,
     `- Status: ${tournament.status}`,
+    `- Pairing algorithm: ${tournament.pairingAlgorithm}`,
     `- Players: ${tournament.players.length}`,
     `- Current round: ${tournament.currentRound} of ${tournament.totalRounds}`,
     `- Created: ${formatDateTime(tournament.createdAt)}`,

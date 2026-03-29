@@ -6,6 +6,7 @@ import {
   renamePlayer,
   removePlayer,
   resetTournament,
+  setPairingAlgorithm,
   setMatchResult,
   setTotalRounds,
   setTournamentName,
@@ -17,7 +18,7 @@ import {
   loadTournamentCollection,
   saveTournamentCollection,
 } from '../utils/storage'
-import type { ManualMatchResult, Tournament } from '../types/tournament'
+import type { ManualMatchResult, PairingAlgorithm, Tournament } from '../types/tournament'
 import type { TournamentCollection } from '../types/workspace'
 
 type TournamentState = TournamentCollection
@@ -30,6 +31,7 @@ export type TournamentAction =
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_TOTAL_ROUNDS'; payload: { totalRounds: number } }
+  | { type: 'SET_PAIRING_ALGORITHM'; payload: { pairingAlgorithm: PairingAlgorithm } }
   | { type: 'SET_TOURNAMENT_NAME'; payload: { name: string } }
   | { type: 'START_TOURNAMENT' }
   | { type: 'SET_MATCH_RESULT'; payload: { matchId: string; result: ManualMatchResult } }
@@ -105,6 +107,10 @@ function reducer(state: TournamentState, action: TournamentAction): TournamentSt
     case 'SET_TOTAL_ROUNDS':
       return updateActiveTournament(state, (tournament) =>
         setTotalRounds(tournament, action.payload.totalRounds),
+      )
+    case 'SET_PAIRING_ALGORITHM':
+      return updateActiveTournament(state, (tournament) =>
+        setPairingAlgorithm(tournament, action.payload.pairingAlgorithm),
       )
     case 'SET_TOURNAMENT_NAME':
       return updateActiveTournament(state, (tournament) =>

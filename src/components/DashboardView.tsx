@@ -6,7 +6,7 @@ import { StandingsTable } from './StandingsTable'
 import { TournamentControls } from './TournamentControls'
 import { TournamentPulse } from './TournamentPulse'
 import type { LibraryPlayer } from '../types/library'
-import type { ManualMatchResult, Match, PlayerStanding, Tournament } from '../types/tournament'
+import type { ManualMatchResult, Match, PairingAlgorithm, PlayerStanding, Tournament } from '../types/tournament'
 
 interface DashboardViewProps {
   tournament: Tournament
@@ -34,6 +34,7 @@ interface DashboardViewProps {
   leaderScore: number
   onNameChange: (value: string) => void
   onRoundsChange: (value: number) => void
+  onPairingAlgorithmChange: (value: PairingAlgorithm) => void
   onStart: () => void
   onExport: () => void
   onReset: () => void
@@ -74,6 +75,7 @@ export function DashboardView({
   leaderScore,
   onNameChange,
   onRoundsChange,
+  onPairingAlgorithmChange,
   onStart,
   onExport,
   onReset,
@@ -95,6 +97,7 @@ export function DashboardView({
         roundsError={roundsError}
         onNameChange={onNameChange}
         onRoundsChange={onRoundsChange}
+        onPairingAlgorithmChange={onPairingAlgorithmChange}
         onStart={onStart}
         onExport={onExport}
         onReset={onReset}

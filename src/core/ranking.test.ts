@@ -6,6 +6,7 @@ import {
   generateNextRound,
   removePlayer,
   renamePlayer,
+  setPairingAlgorithm,
   setMatchResult,
   startTournament,
 } from './tournament'
@@ -291,6 +292,34 @@ describe('pairings', () => {
     expect(byeMatches).toHaveLength(1)
     expect(pairedPlayerIds.size).toBe(29)
   })
+
+  it('supports blossom matching as an alternative pairing engine', () => {
+    const players = createPlayers(['A', 'B', 'C', 'D'])
+    const matches: Match[] = [
+      createMatch({
+        id: 'm1',
+        round: 1,
+        board: 1,
+        whitePlayerId: players[0].id,
+        blackPlayerId: players[1].id,
+        result: '1-0',
+      }),
+      createMatch({
+        id: 'm2',
+        round: 1,
+        board: 2,
+        whitePlayerId: players[2].id,
+        blackPlayerId: players[3].id,
+        result: '1-0',
+      }),
+    ]
+
+    const pairings = generateSwissRoundPairings(players, matches, 2, 'blossom')
+    const pairedIds = pairings.map((match) => [match.whitePlayerId, match.blackPlayerId].sort().join('-'))
+
+    expect(pairedIds).toContain('player-1-player-3')
+    expect(pairedIds).toContain('player-2-player-4')
+  })
 })
 
 describe('tournament progression', () => {
@@ -345,6 +374,21 @@ describe('tournament progression', () => {
 
     expect(renamedTournament.players[0].name).toBe('Alicia')
     expect(renamedTournament.matches).toEqual(startedTournament.matches)
+  })
+
+  it('allows pairing algorithm selection only during setup', () => {
+    const setupTournament = createDefaultTournament()
+    const blossomTournament = setPairingAlgorithm(setupTournament, 'blossom')
+
+    expect(blossomTournament.pairingAlgorithm).toBe('blossom')
+
+    const startedTournament = startTournament({
+      ...blossomTournament,
+      players: createPlayers(['Alice', 'Bob', 'Carol', 'David']),
+      totalRounds: 3,
+    })
+
+    expect(setPairingAlgorithm(startedTournament, 'greedy').pairingAlgorithm).toBe('blossom')
   })
 
   it('adds late entrants to the next round only', () => {
