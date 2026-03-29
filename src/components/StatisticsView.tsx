@@ -39,6 +39,7 @@ export function StatisticsView({
 }: StatisticsViewProps) {
   const { t } = useI18n()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
+  const [expandedTournamentIds, setExpandedTournamentIds] = useState<string[]>([])
   const effectiveSelectedPlayerId = detail?.summary.playerId ?? selectedPlayerId ?? players[0]?.playerId ?? null
   const showMobileDetail = selectedPlayerId !== null
 
@@ -84,6 +85,14 @@ export function StatisticsView({
         [t.statistics.longestColorStreak, `${t.statistics.white}: ${selectedSummary.longestWhiteStreak} · ${t.statistics.black}: ${selectedSummary.longestBlackStreak}`],
       ]
     : []
+
+  const toggleTournamentHistory = (tournamentId: string) => {
+    setExpandedTournamentIds((current) =>
+      current.includes(tournamentId)
+        ? current.filter((id) => id !== tournamentId)
+        : [...current, tournamentId],
+    )
+  }
 
   return (
     <section className="theme-panel rounded-[2rem] p-6 md:p-8">
@@ -250,85 +259,106 @@ export function StatisticsView({
 
                   {detail.tournaments.length ? (
                     <div className="mt-4 space-y-4">
-                      {detail.tournaments.map((tournament) => (
-                        <article
-                          key={tournament.tournamentId}
-                          className="min-w-0 rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
-                            <div className="min-w-0">
-                              <p className="theme-heading break-words font-display text-xl font-semibold">
-                                {tournament.tournamentName}
-                              </p>
-                              <p className="theme-copy mt-1 break-words font-data text-sm">
-                                {formatDateTime(tournament.updatedAt)} · {getTournamentStatusLabel(tournament, t)}
-                              </p>
-                            </div>
-                            <div className="shrink-0 text-right">
-                              <p className="font-display text-2xl font-bold text-[var(--theme-red)]">
-                                {formatScore(tournament.score)}
-                              </p>
-                              <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                                {t.statistics.score}
-                              </p>
-                            </div>
-                          </div>
+                      {detail.tournaments.map((tournament) => {
+                        const isExpanded = expandedTournamentIds.includes(tournament.tournamentId)
 
-                          <div className="mt-4 grid gap-3 md:grid-cols-4">
-                            {[
-                              [t.statistics.rank, `${tournament.finalRank} / ${tournament.playerCount}`],
-                              [t.statistics.seedVsPlacement, `${tournament.seed} → ${tournament.finalRank}`],
-                              [t.statistics.buchholz, formatScore(tournament.buchholz)],
-                              [t.statistics.scorePercentage, formatPercent(tournament.scorePercentage)],
-                              [t.statistics.whiteBlack, `${tournament.whiteGames} / ${tournament.blackGames}`],
-                              [t.statistics.colorImbalance, String(tournament.colorImbalance)],
-                              [t.statistics.entryDrop, `${tournament.enteredRound} / ${tournament.droppedAfterRound ?? '—'}`],
-                              [t.statistics.undefeated, tournament.undefeated ? t.common.yes : t.common.no],
-                            ].map(([label, value]) => (
-                              <div key={label}>
-                                <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                                  {label}
+                        return (
+                          <article
+                            key={tournament.tournamentId}
+                            className="min-w-0 rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
+                              <div className="min-w-0">
+                                <p className="theme-heading break-words font-display text-xl font-semibold">
+                                  {tournament.tournamentName}
                                 </p>
-                                <p className="theme-heading mt-1 break-words font-display text-lg font-semibold">
-                                  {value}
+                                <p className="theme-copy mt-1 break-words font-data text-sm">
+                                  {formatDateTime(tournament.updatedAt)} · {getTournamentStatusLabel(tournament, t)}
                                 </p>
                               </div>
-                            ))}
-                          </div>
-
-                          <div className="mt-4">
-                            <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                              {t.statistics.roundProgression}
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {tournament.rounds.map((round) => (
-                                <span
-                                  key={`${tournament.tournamentId}-round-${round.round}`}
-                                  className="max-w-full break-words rounded-3xl bg-[var(--theme-aqua-soft)] px-3 py-1.5 font-data text-sm text-[var(--theme-plum)]"
-                                >
-                                  {t.statistics.roundShort(round.round)} {formatScore(round.score)} / {formatScore(round.buchholz)} / #{round.rank}
-                                </span>
-                              ))}
+                              <div className="shrink-0 text-right">
+                                <p className="font-display text-2xl font-bold text-[var(--theme-red)]">
+                                  {formatScore(tournament.score)}
+                                </p>
+                                <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                  {t.statistics.score}
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="mt-4">
-                            <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                              {t.statistics.opponents}
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {tournament.opponents.map((opponent, index) => (
-                                <span
-                                  key={`${tournament.tournamentId}-opp-${index}`}
-                                  className="max-w-full break-words rounded-3xl bg-[var(--theme-surface-strong)] px-3 py-1.5 font-data text-sm text-[var(--theme-text)]"
-                                >
-                                  {t.statistics.roundShort(opponent.round)} · {opponent.color ?? '—'} · {opponent.opponentName} · {opponent.result ?? t.common.pending}
-                                </span>
-                              ))}
+                            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                              <p className="theme-copy break-words font-data text-sm">
+                                {t.statistics.rank}: {tournament.finalRank} / {tournament.playerCount} · {t.statistics.buchholz}: {formatScore(tournament.buchholz)}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => toggleTournamentHistory(tournament.tournamentId)}
+                                className="rounded-full bg-[var(--theme-surface-strong)] px-4 py-2 font-display text-sm font-semibold transition"
+                              >
+                                {isExpanded ? t.common.hide : t.common.open}
+                              </button>
                             </div>
-                          </div>
-                        </article>
-                      ))}
+
+                            {isExpanded ? (
+                              <>
+                                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                                  {[
+                                    [t.statistics.rank, `${tournament.finalRank} / ${tournament.playerCount}`],
+                                    [t.statistics.seedVsPlacement, `${tournament.seed} → ${tournament.finalRank}`],
+                                    [t.statistics.buchholz, formatScore(tournament.buchholz)],
+                                    [t.statistics.scorePercentage, formatPercent(tournament.scorePercentage)],
+                                    [t.statistics.whiteBlack, `${tournament.whiteGames} / ${tournament.blackGames}`],
+                                    [t.statistics.colorImbalance, String(tournament.colorImbalance)],
+                                    [t.statistics.entryDrop, `${tournament.enteredRound} / ${tournament.droppedAfterRound ?? '—'}`],
+                                    [t.statistics.undefeated, tournament.undefeated ? t.common.yes : t.common.no],
+                                  ].map(([label, value]) => (
+                                    <div key={label}>
+                                      <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                        {label}
+                                      </p>
+                                      <p className="theme-heading mt-1 break-words font-display text-lg font-semibold">
+                                        {value}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="mt-4">
+                                  <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                    {t.statistics.roundProgression}
+                                  </p>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {tournament.rounds.map((round) => (
+                                      <span
+                                        key={`${tournament.tournamentId}-round-${round.round}`}
+                                        className="max-w-full break-words rounded-3xl bg-[var(--theme-aqua-soft)] px-3 py-1.5 font-data text-sm text-[var(--theme-plum)]"
+                                      >
+                                        {t.statistics.roundShort(round.round)} {formatScore(round.score)} / {formatScore(round.buchholz)} / #{round.rank}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="mt-4">
+                                  <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                    {t.statistics.opponents}
+                                  </p>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {tournament.opponents.map((opponent, index) => (
+                                      <span
+                                        key={`${tournament.tournamentId}-opp-${index}`}
+                                        className="max-w-full break-words rounded-3xl bg-[var(--theme-surface-strong)] px-3 py-1.5 font-data text-sm text-[var(--theme-text)]"
+                                      >
+                                        {t.statistics.roundShort(opponent.round)} · {opponent.color ?? '—'} · {opponent.opponentName} · {opponent.result ?? t.common.pending}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
+                            ) : null}
+                          </article>
+                        )
+                      })}
                     </div>
                   ) : (
                     <p className="theme-copy mt-4 font-data text-sm">{t.statistics.noHistory}</p>
