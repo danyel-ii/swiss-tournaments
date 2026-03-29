@@ -30,7 +30,7 @@ export function createDefaultTournament(options: CreateTournamentOptions = {}): 
     id: options.id ?? crypto.randomUUID(),
     name: options.name ?? 'Chess Tournament',
     totalRounds: 5,
-    pairingAlgorithm: 'greedy',
+    pairingAlgorithm: 'blossom',
     currentRound: 0,
     status: 'setup',
     players: [],

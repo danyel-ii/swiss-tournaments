@@ -11,7 +11,7 @@ function createDefaultTournament() {
     id: crypto.randomUUID(),
     name: 'Chess Tournament',
     totalRounds: 5,
-    pairingAlgorithm: 'greedy' as const,
+    pairingAlgorithm: 'blossom' as const,
     currentRound: 0,
     status: 'setup' as const,
     players: [],
