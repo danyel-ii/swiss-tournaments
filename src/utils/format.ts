@@ -6,6 +6,10 @@ export function formatDateTime(value: string): string {
   return new Date(value).toLocaleString()
 }
 
+export function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`
+}
+
 export function slugifyFileName(value: string): string {
   const trimmed = value.trim().toLowerCase()
 

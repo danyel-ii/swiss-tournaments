@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../useI18n'
-import { formatDateTime, formatScore } from '../utils/format'
-import type { PlayerStatsDetail, PlayerStatsSummary } from '../types/library'
+import { formatDateTime, formatPercent, formatScore } from '../utils/format'
+import type { PlayerStatsDetail, PlayerStatsSummary, PlayerTournamentStat } from '../types/library'
 
 interface StatisticsViewProps {
   players: PlayerStatsSummary[]
@@ -11,6 +11,21 @@ interface StatisticsViewProps {
   error: string | null
   onSelectPlayer: (playerId: string | null) => void
   onDeletePlayer: (playerId: string) => Promise<void>
+}
+
+function getTournamentStatusLabel(
+  tournament: PlayerTournamentStat,
+  t: ReturnType<typeof useI18n>['t'],
+): string {
+  if (tournament.status === 'completed') {
+    return t.statistics.completed
+  }
+
+  if (tournament.status === 'in_progress') {
+    return t.statistics.inProgress
+  }
+
+  return t.statistics.setup
 }
 
 export function StatisticsView({
@@ -30,6 +45,29 @@ export function StatisticsView({
     () => players.find((entry) => entry.playerId === effectiveSelectedPlayerId) ?? players[0] ?? null,
     [effectiveSelectedPlayerId, players],
   )
+
+  const summaryCards = selectedSummary
+    ? [
+        [t.statistics.score, formatScore(selectedSummary.totalScore)],
+        [t.statistics.scorePercentage, formatPercent(selectedSummary.scorePercentage)],
+        [t.statistics.gamesPlayed, String(selectedSummary.gamesPlayed)],
+        [t.statistics.tournamentsPlayed, String(selectedSummary.tournamentsPlayed)],
+        [t.statistics.completedVsPartial, `${selectedSummary.completedTournaments} / ${selectedSummary.partialTournaments}`],
+        [t.statistics.undefeatedTournaments, String(selectedSummary.undefeatedTournaments)],
+        [t.statistics.wins, String(selectedSummary.wins)],
+        [t.statistics.draws, String(selectedSummary.draws)],
+        [t.statistics.losses, String(selectedSummary.losses)],
+        [t.statistics.byes, String(selectedSummary.byes)],
+        [t.statistics.whiteBlack, `${selectedSummary.whiteGames} / ${selectedSummary.blackGames}`],
+        [t.statistics.colorImbalance, String(selectedSummary.colorImbalance)],
+        [t.statistics.averageBuchholz, formatScore(selectedSummary.averageBuchholz)],
+        [t.statistics.bestBuchholz, formatScore(selectedSummary.bestBuchholz)],
+        [t.statistics.latestBuchholz, selectedSummary.latestBuchholz === null ? '—' : formatScore(selectedSummary.latestBuchholz)],
+        [t.statistics.lateEntries, String(selectedSummary.lateEntries)],
+        [t.statistics.dropouts, String(selectedSummary.dropouts)],
+        [t.statistics.longestColorStreak, `${t.statistics.white}: ${selectedSummary.longestWhiteStreak} · ${t.statistics.black}: ${selectedSummary.longestBlackStreak}`],
+      ]
+    : []
 
   return (
     <section className="theme-panel rounded-[2rem] p-6 md:p-8">
@@ -81,8 +119,10 @@ export function StatisticsView({
                         {player.name}
                       </p>
                       <p className="theme-copy mt-1 font-data text-sm">
-                        {t.statistics.tournamentsPlayed}: {player.tournamentsPlayed} · {t.statistics.gamesPlayed}:{' '}
-                        {player.gamesPlayed}
+                        {t.statistics.tournamentsPlayed}: {player.tournamentsPlayed} · {t.statistics.gamesPlayed}: {player.gamesPlayed}
+                      </p>
+                      <p className="theme-copy mt-1 font-data text-sm">
+                        {t.statistics.averageBuchholz}: {formatScore(player.averageBuchholz)} · {t.statistics.whiteBlack}: {player.whiteGames}/{player.blackGames}
                       </p>
                     </div>
                     <div className="text-right">
@@ -100,73 +140,87 @@ export function StatisticsView({
           </div>
 
           <div className="space-y-6">
-            {selectedSummary ? (
+            {selectedSummary && detail ? (
               <>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {[
-                    [t.statistics.wins, selectedSummary.wins],
-                    [t.statistics.draws, selectedSummary.draws],
-                    [t.statistics.losses, selectedSummary.losses],
-                    [t.statistics.byes, selectedSummary.byes],
-                    [t.statistics.tournamentsPlayed, selectedSummary.tournamentsPlayed],
-                    [t.statistics.gamesPlayed, selectedSummary.gamesPlayed],
-                  ].map(([label, value]) => (
-                    <article
-                      key={label}
-                      className="theme-muted-panel rounded-3xl px-4 py-4"
-                    >
+                  {summaryCards.map(([label, value]) => (
+                    <article key={label} className="theme-muted-panel rounded-3xl px-4 py-4">
                       <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
                         {label}
                       </p>
-                      <p className="theme-heading mt-2 font-display text-3xl font-semibold">
+                      <p className="theme-heading mt-2 font-display text-2xl font-semibold">
                         {value}
                       </p>
                     </article>
                   ))}
                 </div>
 
-                <div className="theme-muted-panel rounded-3xl px-5 py-4">
-                  <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
-                    {t.statistics.lastPlayed}
-                  </p>
-                  <p className="theme-heading mt-2 font-display text-xl font-semibold">
-                    {selectedSummary.lastPlayedAt ? formatDateTime(selectedSummary.lastPlayedAt) : '—'}
-                  </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                    <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                      {t.statistics.lastPlayed}
+                    </p>
+                    <p className="theme-heading mt-2 font-display text-xl font-semibold">
+                      {selectedSummary.lastPlayedAt ? formatDateTime(selectedSummary.lastPlayedAt) : '—'}
+                    </p>
+                    <p className="theme-copy mt-3 font-data text-sm">
+                      {t.statistics.winRate}: {formatPercent(selectedSummary.winRate)} · {t.statistics.drawRate}: {formatPercent(selectedSummary.drawRate)} · {t.statistics.lossRate}: {formatPercent(selectedSummary.lossRate)}
+                    </p>
+                    <p className="theme-copy mt-1 font-data text-sm">
+                      {t.statistics.winRateByColor}: {t.statistics.white} {formatPercent(selectedSummary.winRateAsWhite)} · {t.statistics.black} {formatPercent(selectedSummary.winRateAsBlack)}
+                    </p>
+                  </div>
+
+                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                          {t.statistics.managePlayer}
+                        </p>
+                        <p className="theme-heading mt-2 font-display text-xl font-semibold">
+                          {selectedSummary.name}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={deleting}
+                        onClick={() => {
+                          const nextSelected =
+                            players.find((entry) => entry.playerId !== selectedSummary.playerId)?.playerId ?? null
+                          const confirmed = window.confirm(
+                            t.statistics.deletePlayerConfirm(selectedSummary.name),
+                          )
+
+                          if (!confirmed) {
+                            return
+                          }
+
+                          void onDeletePlayer(selectedSummary.playerId).then(() => {
+                            setSelectedPlayerId(nextSelected)
+                            onSelectPlayer(nextSelected)
+                          })
+                        }}
+                        className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {t.statistics.deletePlayer}
+                      </button>
+                    </div>
+                    <p className="theme-copy mt-3 font-data text-sm">
+                      {t.statistics.byeHistory}: {detail.byeHistory.length}
+                    </p>
+                    <p className="theme-copy mt-1 font-data text-sm">
+                      {t.statistics.headToHeadTitle}: {detail.headToHead.length}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="theme-muted-panel rounded-3xl px-5 py-4">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <h3 className="theme-heading font-display text-2xl font-semibold">
-                      {t.statistics.historyTitle}
-                    </h3>
-                    <button
-                      type="button"
-                      disabled={deleting}
-                      onClick={() => {
-                        const nextSelected =
-                          players.find((entry) => entry.playerId !== selectedSummary.playerId)?.playerId ??
-                          null
-                        const confirmed = window.confirm(
-                          t.statistics.deletePlayerConfirm(selectedSummary.name),
-                        )
+                  <h3 className="theme-heading font-display text-2xl font-semibold">
+                    {t.statistics.historyTitle}
+                  </h3>
 
-                        if (!confirmed) {
-                          return
-                        }
-
-                        void onDeletePlayer(selectedSummary.playerId).then(() => {
-                          setSelectedPlayerId(nextSelected)
-                          onSelectPlayer(nextSelected)
-                        })
-                      }}
-                      className="rounded-full bg-[var(--theme-red-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-red)] transition disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {t.statistics.deletePlayer}
-                    </button>
-                  </div>
-
-                  {detail?.tournaments.length ? (
-                    <div className="mt-4 space-y-3">
+                  {detail.tournaments.length ? (
+                    <div className="mt-4 space-y-4">
                       {detail.tournaments.map((tournament) => (
                         <article
                           key={tournament.tournamentId}
@@ -178,7 +232,7 @@ export function StatisticsView({
                                 {tournament.tournamentName}
                               </p>
                               <p className="theme-copy mt-1 font-data text-sm">
-                                {formatDateTime(tournament.updatedAt)}
+                                {formatDateTime(tournament.updatedAt)} · {getTournamentStatusLabel(tournament, t)}
                               </p>
                             </div>
                             <div className="text-right">
@@ -190,16 +244,136 @@ export function StatisticsView({
                               </p>
                             </div>
                           </div>
-                          <p className="theme-copy mt-3 font-data text-sm">
-                            {t.statistics.wins}: {tournament.wins} · {t.statistics.draws}: {tournament.draws} ·{' '}
-                            {t.statistics.losses}: {tournament.losses} · {t.statistics.byes}: {tournament.byes}
-                          </p>
+
+                          <div className="mt-4 grid gap-3 md:grid-cols-4">
+                            {[
+                              [t.statistics.rank, `${tournament.finalRank} / ${tournament.playerCount}`],
+                              [t.statistics.seedVsPlacement, `${tournament.seed} → ${tournament.finalRank}`],
+                              [t.statistics.buchholz, formatScore(tournament.buchholz)],
+                              [t.statistics.scorePercentage, formatPercent(tournament.scorePercentage)],
+                              [t.statistics.whiteBlack, `${tournament.whiteGames} / ${tournament.blackGames}`],
+                              [t.statistics.colorImbalance, String(tournament.colorImbalance)],
+                              [t.statistics.entryDrop, `${tournament.enteredRound} / ${tournament.droppedAfterRound ?? '—'}`],
+                              [t.statistics.undefeated, tournament.undefeated ? t.common.yes : t.common.no],
+                            ].map(([label, value]) => (
+                              <div key={label}>
+                                <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                  {label}
+                                </p>
+                                <p className="theme-heading mt-1 font-display text-lg font-semibold">
+                                  {value}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                              {t.statistics.roundProgression}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {tournament.rounds.map((round) => (
+                                <span
+                                  key={`${tournament.tournamentId}-round-${round.round}`}
+                                  className="rounded-full bg-[var(--theme-aqua-soft)] px-3 py-1.5 font-data text-sm text-[var(--theme-plum)]"
+                                >
+                                  {t.statistics.roundShort(round.round)} {formatScore(round.score)} / {formatScore(round.buchholz)} / #{round.rank}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                              {t.statistics.opponents}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {tournament.opponents.map((opponent, index) => (
+                                <span
+                                  key={`${tournament.tournamentId}-opp-${index}`}
+                                  className="rounded-full bg-[var(--theme-surface-strong)] px-3 py-1.5 font-data text-sm text-[var(--theme-text)]"
+                                >
+                                  {t.statistics.roundShort(opponent.round)} · {opponent.color ?? '—'} · {opponent.opponentName} · {opponent.result ?? t.common.pending}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </article>
                       ))}
                     </div>
                   ) : (
                     <p className="theme-copy mt-4 font-data text-sm">{t.statistics.noHistory}</p>
                   )}
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                    <h3 className="theme-heading font-display text-2xl font-semibold">
+                      {t.statistics.headToHeadTitle}
+                    </h3>
+                    {detail.headToHead.length ? (
+                      <div className="mt-4 space-y-3">
+                        {detail.headToHead.map((entry, index) => (
+                          <article
+                            key={`${entry.opponentPlayerId ?? entry.opponentName}-${index}`}
+                            className="rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="theme-heading font-display text-lg font-semibold">
+                                  {entry.opponentName}
+                                </p>
+                                <p className="theme-copy mt-1 font-data text-sm">
+                                  {t.statistics.tournamentsPlayed}: {entry.tournamentsPlayed} · {t.statistics.gamesPlayed}: {entry.gamesPlayed}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-display text-xl font-bold text-[var(--theme-red)]">
+                                  {formatScore(entry.score)}
+                                </p>
+                                <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
+                                  {t.statistics.score}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="theme-copy mt-3 font-data text-sm">
+                              {t.statistics.wins}: {entry.wins} · {t.statistics.draws}: {entry.draws} · {t.statistics.losses}: {entry.losses}
+                            </p>
+                            <p className="theme-copy mt-1 font-data text-sm">
+                              {t.statistics.whiteBlack}: {entry.whiteGames}/{entry.blackGames} · {t.statistics.lastPlayed}: {entry.lastPlayedAt ? formatDateTime(entry.lastPlayedAt) : '—'}
+                            </p>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="theme-copy mt-4 font-data text-sm">{t.statistics.noHeadToHead}</p>
+                    )}
+                  </div>
+
+                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                    <h3 className="theme-heading font-display text-2xl font-semibold">
+                      {t.statistics.byeHistory}
+                    </h3>
+                    {detail.byeHistory.length ? (
+                      <div className="mt-4 space-y-3">
+                        {detail.byeHistory.map((entry) => (
+                          <article
+                            key={`${entry.tournamentId}-${entry.round}`}
+                            className="rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                          >
+                            <p className="theme-heading font-display text-lg font-semibold">
+                              {entry.tournamentName}
+                            </p>
+                            <p className="theme-copy mt-1 font-data text-sm">
+                              {formatDateTime(entry.updatedAt)} · {t.statistics.roundShort(entry.round)}
+                            </p>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="theme-copy mt-4 font-data text-sm">{t.statistics.noByes}</p>
+                    )}
+                  </div>
                 </div>
               </>
             ) : null}

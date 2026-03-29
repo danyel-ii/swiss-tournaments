@@ -1,11 +1,22 @@
 import { sql } from './db.js'
 import type { AllowedUsername } from './config.js'
+import {
+  getMatchPointsForPlayer,
+  getPlayerColorHistory,
+  getPlayersEnteredByRound,
+  getPlayerStats,
+} from '../src/core/ranking.js'
 import type {
   LibraryPlayer,
+  PlayerByeHistoryItem,
+  PlayerHeadToHeadStat,
   PlayerStatsDetail,
   PlayerStatsSummary,
   PlayerTournamentStat,
+  PlayerTournamentOpponentStat,
+  PlayerTournamentRoundStat,
 } from '../src/types/library.js'
+import type { Match, Player, TournamentStatus } from '../src/types/tournament.js'
 import type { TournamentCollection } from '../src/types/workspace.js'
 
 interface LibraryRow {
@@ -15,13 +26,22 @@ interface LibraryRow {
 }
 
 interface TournamentPlayerProjectionRow {
+  tournament_player_id: string
   library_player_id: string | null
   tournament_id: string
   name_snapshot: string
+  seed: number
+  entered_round: number
+  dropped_after_round: number | null
 }
 
 interface MatchProjectionRow {
+  match_id: string
   tournament_id: string
+  round: number
+  board: number
+  white_tournament_player_id: string
+  black_tournament_player_id: string | null
   white_library_player_id: string | null
   black_library_player_id: string | null
   result: string | null
@@ -31,7 +51,38 @@ interface MatchProjectionRow {
 interface TournamentRecordRow {
   tournament_id: string
   name: string
+  status: TournamentStatus
+  total_rounds: number
+  current_round: number
+  created_at: string
   updated_at: string
+}
+
+interface TournamentSnapshot {
+  record: TournamentRecordRow
+  players: Player[]
+  matches: Match[]
+  playerById: Map<string, Player>
+}
+
+interface TournamentPlayerAggregate {
+  score: number
+  gamesPlayed: number
+  wins: number
+  draws: number
+  losses: number
+  byes: number
+  whiteGames: number
+  blackGames: number
+}
+
+interface SummaryAccumulator {
+  summary: PlayerStatsSummary
+  buchholzSamples: Array<{ value: number; updatedAt: string }>
+  whiteWins: number
+  whiteCompletedGames: number
+  blackWins: number
+  blackCompletedGames: number
 }
 
 let ensureLibrarySchemaPromise: Promise<void> | null = null
@@ -263,250 +314,148 @@ function createEmptySummary(row: LibraryRow): PlayerStatsSummary {
     playerId: row.id,
     name: row.display_name,
     tournamentsPlayed: 0,
+    completedTournaments: 0,
+    partialTournaments: 0,
     gamesPlayed: 0,
     totalScore: 0,
+    scorePercentage: 0,
     wins: 0,
+    winRate: 0,
+    winRateAsWhite: 0,
+    winRateAsBlack: 0,
     draws: 0,
+    drawRate: 0,
     losses: 0,
+    lossRate: 0,
     byes: 0,
+    undefeatedTournaments: 0,
+    lateEntries: 0,
+    dropouts: 0,
+    whiteGames: 0,
+    blackGames: 0,
+    colorImbalance: 0,
+    longestWhiteStreak: 0,
+    longestBlackStreak: 0,
+    averageBuchholz: 0,
+    bestBuchholz: 0,
+    latestBuchholz: null,
     lastPlayedAt: null,
   }
 }
 
-function applyMatchToSummary(summary: PlayerStatsSummary, match: MatchProjectionRow): void {
-  if (match.is_bye) {
-    if (match.white_library_player_id === summary.playerId && match.result === 'BYE') {
-      summary.byes += 1
-      summary.totalScore += 1
-    }
-    return
-  }
-
-  if (match.result === null) {
-    return
-  }
-
-  const isWhite = match.white_library_player_id === summary.playerId
-  const isBlack = match.black_library_player_id === summary.playerId
-
-  if (!isWhite && !isBlack) {
-    return
-  }
-
-  summary.gamesPlayed += 1
-
-  switch (match.result) {
-    case '1-0':
-      if (isWhite) {
-        summary.wins += 1
-        summary.totalScore += 1
-      } else {
-        summary.losses += 1
-      }
-      break
-    case '0-1':
-      if (isBlack) {
-        summary.wins += 1
-        summary.totalScore += 1
-      } else {
-        summary.losses += 1
-      }
-      break
-    case '0.5-0.5':
-      summary.draws += 1
-      summary.totalScore += 0.5
-      break
-    case '0-0':
-      break
-    default:
-      break
+function createSummaryAccumulator(row: LibraryRow): SummaryAccumulator {
+  return {
+    summary: createEmptySummary(row),
+    buchholzSamples: [],
+    whiteWins: 0,
+    whiteCompletedGames: 0,
+    blackWins: 0,
+    blackCompletedGames: 0,
   }
 }
 
-export async function listPlayerStats(
-  username: AllowedUsername,
-): Promise<PlayerStatsSummary[]> {
-  const libraryRows = (await sql`
-    select id, display_name, created_at
-    from player_library
-    where username = ${username}
-    order by display_name asc
-  `) as LibraryRow[]
-  const playerRows = (await sql`
-    select library_player_id, tournament_id, name_snapshot
-    from tournament_player_entries
-    where username = ${username}
-  `) as TournamentPlayerProjectionRow[]
-  const matchRows = (await sql`
-    select tournament_id, white_library_player_id, black_library_player_id, result, is_bye
-    from tournament_match_entries
-    where username = ${username}
-  `) as MatchProjectionRow[]
-  const tournamentRows = (await sql`
-    select tournament_id, name, updated_at
-    from tournament_records
-    where username = ${username}
-  `) as TournamentRecordRow[]
-
-  const summaries = new Map<string, PlayerStatsSummary>(
-    libraryRows.map((row) => [row.id, createEmptySummary(row)]),
-  )
-
-  for (const row of playerRows) {
-    if (!row.library_player_id) {
-      continue
-    }
-
-    const summary = summaries.get(row.library_player_id)
-
-    if (!summary) {
-      continue
-    }
-
-    summary.tournamentsPlayed += 1
+function createMatchResultValue(result: string | null): Match['result'] | null {
+  if (
+    result === '1-0' ||
+    result === '0-1' ||
+    result === '0.5-0.5' ||
+    result === '0-0' ||
+    result === 'BYE'
+  ) {
+    return result
   }
 
-  const lastPlayedByPlayerId = new Map<string, string>()
-  const tournamentById = new Map(tournamentRows.map((row) => [row.tournament_id, row]))
-
-  for (const match of matchRows) {
-    for (const summary of summaries.values()) {
-      const beforeScore = summary.totalScore
-      const beforeGames = summary.gamesPlayed
-      const beforeByes = summary.byes
-      applyMatchToSummary(summary, match)
-
-      if (
-        summary.totalScore !== beforeScore ||
-        summary.gamesPlayed !== beforeGames ||
-        summary.byes !== beforeByes
-      ) {
-        const updatedAt = tournamentById.get(match.tournament_id)?.updated_at
-
-        if (updatedAt) {
-          const previous = lastPlayedByPlayerId.get(summary.playerId)
-          if (!previous || new Date(updatedAt).getTime() > new Date(previous).getTime()) {
-            lastPlayedByPlayerId.set(summary.playerId, updatedAt)
-          }
-        }
-      }
-    }
-  }
-
-  for (const summary of summaries.values()) {
-    summary.lastPlayedAt = lastPlayedByPlayerId.get(summary.playerId) ?? null
-  }
-
-  return [...summaries.values()]
-    .filter((summary) => summary.tournamentsPlayed > 0)
-    .sort((left, right) => {
-    if (left.totalScore !== right.totalScore) {
-      return right.totalScore - left.totalScore
-    }
-
-    return left.name.localeCompare(right.name)
-    })
+  return null
 }
 
-export async function getPlayerStatsDetail(
-  username: AllowedUsername,
-  playerId: string,
-): Promise<PlayerStatsDetail | null> {
-  const summaries = await listPlayerStats(username)
-  const summary = summaries.find((entry) => entry.playerId === playerId)
-
-  if (!summary) {
-    return null
-  }
-
-  const tournaments = (await sql`
-    select tournament_id, name, updated_at
-    from tournament_records
-    where username = ${username}
-    order by updated_at desc
-  `) as TournamentRecordRow[]
-  const playerEntries = (await sql`
-    select tournament_id
-    from tournament_player_entries
-    where username = ${username}
-      and library_player_id = ${playerId}
-  `) as Array<{ tournament_id: string }>
-  const matchRows = (await sql`
-    select tournament_id, white_library_player_id, black_library_player_id, result, is_bye
-    from tournament_match_entries
-    where username = ${username}
-      and (white_library_player_id = ${playerId} or black_library_player_id = ${playerId})
-  `) as MatchProjectionRow[]
-
-  const includedTournamentIds = new Set(playerEntries.map((entry) => entry.tournament_id))
-  const detailByTournamentId = new Map<string, PlayerTournamentStat>()
-
-  for (const tournament of tournaments) {
-    if (!includedTournamentIds.has(tournament.tournament_id)) {
-      continue
+function sortMatchesChronologically(matches: Match[]): Match[] {
+  return [...matches].sort((left, right) => {
+    if (left.round !== right.round) {
+      return left.round - right.round
     }
 
-    detailByTournamentId.set(tournament.tournament_id, {
-      tournamentId: tournament.tournament_id,
-      tournamentName: tournament.name,
-      updatedAt: tournament.updated_at,
-      score: 0,
-      gamesPlayed: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      byes: 0,
-    })
+    return left.board - right.board
+  })
+}
+
+function computeLongestColorStreak(colorHistory: Array<'W' | 'B'>, targetColor: 'W' | 'B'): number {
+  let current = 0
+  let best = 0
+
+  for (const color of colorHistory) {
+    if (color === targetColor) {
+      current += 1
+      best = Math.max(best, current)
+    } else {
+      current = 0
+    }
   }
 
-  for (const match of matchRows) {
-    const detail = detailByTournamentId.get(match.tournament_id)
+  return best
+}
 
-    if (!detail) {
-      continue
-    }
+function createTournamentAggregate(playerId: string, matches: Match[]): TournamentPlayerAggregate {
+  const aggregate: TournamentPlayerAggregate = {
+    score: 0,
+    gamesPlayed: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    byes: 0,
+    whiteGames: 0,
+    blackGames: 0,
+  }
 
-    if (match.is_bye) {
-      if (match.white_library_player_id === playerId && match.result === 'BYE') {
-        detail.byes += 1
-        detail.score += 1
+  for (const match of sortMatchesChronologically(matches)) {
+    if (match.isBye) {
+      if (match.whitePlayerId === playerId && match.result === 'BYE') {
+        aggregate.byes += 1
+        aggregate.score += 1
       }
       continue
+    }
+
+    const isWhite = match.whitePlayerId === playerId
+    const isBlack = match.blackPlayerId === playerId
+
+    if (!isWhite && !isBlack) {
+      continue
+    }
+
+    if (isWhite) {
+      aggregate.whiteGames += 1
+    }
+
+    if (isBlack) {
+      aggregate.blackGames += 1
     }
 
     if (match.result === null) {
       continue
     }
 
-    const isWhite = match.white_library_player_id === playerId
-    const isBlack = match.black_library_player_id === playerId
-
-    if (!isWhite && !isBlack) {
-      continue
-    }
-
-    detail.gamesPlayed += 1
+    aggregate.gamesPlayed += 1
 
     switch (match.result) {
       case '1-0':
         if (isWhite) {
-          detail.wins += 1
-          detail.score += 1
+          aggregate.wins += 1
+          aggregate.score += 1
         } else {
-          detail.losses += 1
+          aggregate.losses += 1
         }
         break
       case '0-1':
         if (isBlack) {
-          detail.wins += 1
-          detail.score += 1
+          aggregate.wins += 1
+          aggregate.score += 1
         } else {
-          detail.losses += 1
+          aggregate.losses += 1
         }
         break
       case '0.5-0.5':
-        detail.draws += 1
-        detail.score += 0.5
+        aggregate.draws += 1
+        aggregate.score += 0.5
         break
       case '0-0':
         break
@@ -515,12 +464,486 @@ export async function getPlayerStatsDetail(
     }
   }
 
-  return {
-    summary,
-    tournaments: [...detailByTournamentId.values()].sort(
-      (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
-    ),
+  return aggregate
+}
+
+function getScorePercentage(score: number, gamesPlayed: number, byes: number): number {
+  const denominator = gamesPlayed + byes
+
+  if (denominator === 0) {
+    return 0
   }
+
+  return score / denominator
+}
+
+function buildTournamentSnapshots(
+  tournamentRows: TournamentRecordRow[],
+  playerRows: TournamentPlayerProjectionRow[],
+  matchRows: MatchProjectionRow[],
+): Map<string, TournamentSnapshot> {
+  const playersByTournamentId = new Map<string, TournamentPlayerProjectionRow[]>()
+  const matchesByTournamentId = new Map<string, MatchProjectionRow[]>()
+
+  for (const row of playerRows) {
+    const current = playersByTournamentId.get(row.tournament_id) ?? []
+    current.push(row)
+    playersByTournamentId.set(row.tournament_id, current)
+  }
+
+  for (const row of matchRows) {
+    const current = matchesByTournamentId.get(row.tournament_id) ?? []
+    current.push(row)
+    matchesByTournamentId.set(row.tournament_id, current)
+  }
+
+  return new Map(
+    tournamentRows.map((record) => {
+      const players = (playersByTournamentId.get(record.tournament_id) ?? []).map((row) => ({
+        id: row.tournament_player_id,
+        libraryPlayerId: row.library_player_id,
+        name: row.name_snapshot,
+        seed: row.seed,
+        enteredRound: row.entered_round,
+        droppedAfterRound: row.dropped_after_round,
+      }))
+      const matches = (matchesByTournamentId.get(record.tournament_id) ?? []).map((row) => ({
+        id: row.match_id,
+        round: row.round,
+        board: row.board,
+        whitePlayerId: row.white_tournament_player_id,
+        blackPlayerId: row.black_tournament_player_id,
+        result: createMatchResultValue(row.result),
+        isBye: row.is_bye,
+      }))
+
+      return [
+        record.tournament_id,
+        {
+          record,
+          players,
+          matches,
+          playerById: new Map(players.map((player) => [player.id, player])),
+        } satisfies TournamentSnapshot,
+      ]
+    }),
+  )
+}
+
+function buildTournamentOpponentStats(
+  targetPlayerId: string,
+  snapshot: TournamentSnapshot,
+): PlayerTournamentOpponentStat[] {
+  return sortMatchesChronologically(snapshot.matches)
+    .filter(
+      (match) =>
+        match.whitePlayerId === targetPlayerId || match.blackPlayerId === targetPlayerId,
+    )
+    .map((match) => {
+      if (match.isBye) {
+        return {
+          round: match.round,
+          board: match.board,
+          opponentPlayerId: null,
+          opponentName: 'BYE',
+          color: null,
+          result: match.result,
+          points: getMatchPointsForPlayer(match, targetPlayerId),
+        }
+      }
+
+      const isWhite = match.whitePlayerId === targetPlayerId
+      const opponentId = isWhite ? (match.blackPlayerId as string) : match.whitePlayerId
+
+      return {
+        round: match.round,
+        board: match.board,
+        opponentPlayerId: snapshot.playerById.get(opponentId)?.libraryPlayerId ?? null,
+        opponentName: snapshot.playerById.get(opponentId)?.name ?? 'Unknown',
+        color: isWhite ? 'W' : 'B',
+        result: match.result,
+        points: getMatchPointsForPlayer(match, targetPlayerId),
+      }
+    })
+}
+
+function buildRoundProgression(
+  targetPlayerId: string,
+  snapshot: TournamentSnapshot,
+): PlayerTournamentRoundStat[] {
+  const currentRound = snapshot.record.current_round
+  const progression: PlayerTournamentRoundStat[] = []
+
+  for (let round = 1; round <= currentRound; round += 1) {
+    const player = snapshot.playerById.get(targetPlayerId)
+
+    if (!player || player.enteredRound > round) {
+      continue
+    }
+
+    const playersEnteredByRound = getPlayersEnteredByRound(snapshot.players, round)
+    const matchesThroughRound = snapshot.matches.filter((match) => match.round <= round)
+    const standing = getPlayerStats(targetPlayerId, playersEnteredByRound, matchesThroughRound)
+
+    progression.push({
+      round,
+      score: standing.score,
+      buchholz: standing.buchholz,
+      rank: standing.rank,
+    })
+  }
+
+  return progression
+}
+
+function buildPlayerTournamentStat(
+  playerId: string,
+  snapshot: TournamentSnapshot,
+): PlayerTournamentStat | null {
+  const player = snapshot.players.find((entry) => entry.libraryPlayerId === playerId)
+
+  if (!player) {
+    return null
+  }
+
+  const standingsPool = getPlayersEnteredByRound(
+    snapshot.players,
+    Math.max(snapshot.record.current_round, 1),
+  )
+  const standing = getPlayerStats(player.id, standingsPool, snapshot.matches)
+  const aggregate = createTournamentAggregate(player.id, snapshot.matches)
+  const colorHistory = getPlayerColorHistory(player.id, snapshot.matches)
+
+  return {
+    tournamentId: snapshot.record.tournament_id,
+    tournamentName: snapshot.record.name,
+    updatedAt: snapshot.record.updated_at,
+    status: snapshot.record.status,
+    totalRounds: snapshot.record.total_rounds,
+    currentRound: snapshot.record.current_round,
+    playerCount: standingsPool.length,
+    seed: player.seed,
+    finalRank: standing.rank,
+    placementDelta: player.seed - standing.rank,
+    score: aggregate.score,
+    scorePercentage: getScorePercentage(aggregate.score, aggregate.gamesPlayed, aggregate.byes),
+    buchholz: standing.buchholz,
+    gamesPlayed: aggregate.gamesPlayed,
+    wins: aggregate.wins,
+    draws: aggregate.draws,
+    losses: aggregate.losses,
+    byes: aggregate.byes,
+    whiteGames: aggregate.whiteGames,
+    blackGames: aggregate.blackGames,
+    colorImbalance: aggregate.whiteGames - aggregate.blackGames,
+    longestWhiteStreak: computeLongestColorStreak(colorHistory, 'W'),
+    longestBlackStreak: computeLongestColorStreak(colorHistory, 'B'),
+    enteredRound: player.enteredRound,
+    droppedAfterRound: player.droppedAfterRound,
+    lateEntry: player.enteredRound > 1,
+    dropped: player.droppedAfterRound !== null,
+    undefeated: aggregate.losses === 0 && aggregate.gamesPlayed + aggregate.byes > 0,
+    opponents: buildTournamentOpponentStats(player.id, snapshot),
+    rounds: buildRoundProgression(player.id, snapshot),
+  }
+}
+
+function updateHeadToHeadStats(
+  target: Map<string, PlayerHeadToHeadStat>,
+  tournament: PlayerTournamentStat,
+): void {
+  const seenTournamentKeys = new Set<string>()
+
+  for (const opponent of tournament.opponents) {
+    if (!opponent.opponentName || opponent.opponentName === 'BYE' || opponent.result === null) {
+      continue
+    }
+
+    const key = opponent.opponentPlayerId ?? `name:${opponent.opponentName}`
+    const current = target.get(key) ?? {
+      opponentPlayerId: opponent.opponentPlayerId,
+      opponentName: opponent.opponentName,
+      tournamentsPlayed: 0,
+      gamesPlayed: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      score: 0,
+      whiteGames: 0,
+      blackGames: 0,
+      lastPlayedAt: null,
+    }
+
+    if (!seenTournamentKeys.has(key)) {
+      current.tournamentsPlayed += 1
+      seenTournamentKeys.add(key)
+    }
+
+    current.gamesPlayed += 1
+    current.score += opponent.points
+    current.lastPlayedAt =
+      !current.lastPlayedAt || new Date(tournament.updatedAt).getTime() > new Date(current.lastPlayedAt).getTime()
+        ? tournament.updatedAt
+        : current.lastPlayedAt
+
+    if (opponent.color === 'W') {
+      current.whiteGames += 1
+    }
+
+    if (opponent.color === 'B') {
+      current.blackGames += 1
+    }
+
+    switch (opponent.result) {
+      case '1-0':
+        if (opponent.color === 'W') {
+          current.wins += 1
+        } else {
+          current.losses += 1
+        }
+        break
+      case '0-1':
+        if (opponent.color === 'B') {
+          current.wins += 1
+        } else {
+          current.losses += 1
+        }
+        break
+      case '0.5-0.5':
+        current.draws += 1
+        break
+      default:
+        break
+    }
+
+    target.set(key, current)
+  }
+}
+
+function createByeHistory(tournaments: PlayerTournamentStat[]): PlayerByeHistoryItem[] {
+  return tournaments.flatMap((tournament) =>
+    tournament.opponents
+      .filter((opponent) => opponent.opponentName === 'BYE' && opponent.result === 'BYE')
+      .map((opponent) => ({
+        tournamentId: tournament.tournamentId,
+        tournamentName: tournament.tournamentName,
+        updatedAt: tournament.updatedAt,
+        round: opponent.round,
+      })),
+  )
+}
+
+function finalizeSummary(accumulator: SummaryAccumulator): PlayerStatsSummary {
+  const { summary, buchholzSamples, whiteWins, whiteCompletedGames, blackWins, blackCompletedGames } = accumulator
+  const latestBuchholzSample = [...buchholzSamples].sort(
+    (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+  )[0]
+
+  summary.colorImbalance = summary.whiteGames - summary.blackGames
+  summary.scorePercentage = getScorePercentage(summary.totalScore, summary.gamesPlayed, summary.byes)
+  summary.winRate = summary.gamesPlayed > 0 ? summary.wins / summary.gamesPlayed : 0
+  summary.drawRate = summary.gamesPlayed > 0 ? summary.draws / summary.gamesPlayed : 0
+  summary.lossRate = summary.gamesPlayed > 0 ? summary.losses / summary.gamesPlayed : 0
+  summary.winRateAsWhite = whiteCompletedGames > 0 ? whiteWins / whiteCompletedGames : 0
+  summary.winRateAsBlack = blackCompletedGames > 0 ? blackWins / blackCompletedGames : 0
+  summary.averageBuchholz =
+    buchholzSamples.length > 0
+      ? buchholzSamples.reduce((total, sample) => total + sample.value, 0) / buchholzSamples.length
+      : 0
+  summary.bestBuchholz =
+    buchholzSamples.length > 0 ? Math.max(...buchholzSamples.map((sample) => sample.value)) : 0
+  summary.latestBuchholz = latestBuchholzSample?.value ?? null
+
+  return summary
+}
+
+async function loadStatsProjection(username: AllowedUsername): Promise<{
+  libraryRows: LibraryRow[]
+  tournamentRows: TournamentRecordRow[]
+  playerRows: TournamentPlayerProjectionRow[]
+  matchRows: MatchProjectionRow[]
+}> {
+  await ensureLibrarySchema()
+
+  const [libraryRows, tournamentRows, playerRows, matchRows] = await Promise.all([
+    sql`
+      select id, display_name, created_at
+      from player_library
+      where username = ${username}
+      order by display_name asc
+    `,
+    sql`
+      select tournament_id, name, status, total_rounds, current_round, created_at, updated_at
+      from tournament_records
+      where username = ${username}
+      order by updated_at desc
+    `,
+    sql`
+      select
+        tournament_player_id,
+        library_player_id,
+        tournament_id,
+        name_snapshot,
+        seed,
+        entered_round,
+        dropped_after_round
+      from tournament_player_entries
+      where username = ${username}
+    `,
+    sql`
+      select
+        match_id,
+        tournament_id,
+        round,
+        board,
+        white_tournament_player_id,
+        black_tournament_player_id,
+        white_library_player_id,
+        black_library_player_id,
+        result,
+        is_bye
+      from tournament_match_entries
+      where username = ${username}
+    `,
+  ])
+
+  return {
+    libraryRows: libraryRows as LibraryRow[],
+    tournamentRows: tournamentRows as TournamentRecordRow[],
+    playerRows: playerRows as TournamentPlayerProjectionRow[],
+    matchRows: matchRows as MatchProjectionRow[],
+  }
+}
+
+async function buildStatsData(username: AllowedUsername): Promise<{
+  summaries: PlayerStatsSummary[]
+  details: Map<string, PlayerStatsDetail>
+}> {
+  const { libraryRows, tournamentRows, playerRows, matchRows } = await loadStatsProjection(username)
+  const snapshots = buildTournamentSnapshots(tournamentRows, playerRows, matchRows)
+  const summaryAccumulators = new Map<string, SummaryAccumulator>(
+    libraryRows.map((row) => [row.id, createSummaryAccumulator(row)]),
+  )
+  const detailMap = new Map<string, PlayerStatsDetail>()
+
+  for (const row of libraryRows) {
+    const tournaments = [...snapshots.values()]
+      .map((snapshot) => buildPlayerTournamentStat(row.id, snapshot))
+      .filter((entry): entry is PlayerTournamentStat => entry !== null)
+      .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+
+    if (tournaments.length === 0) {
+      continue
+    }
+
+    const accumulator = summaryAccumulators.get(row.id)
+
+    if (!accumulator) {
+      continue
+    }
+
+    for (const tournament of tournaments) {
+      accumulator.summary.tournamentsPlayed += 1
+      accumulator.summary.completedTournaments += tournament.status === 'completed' ? 1 : 0
+      accumulator.summary.partialTournaments += tournament.status === 'completed' ? 0 : 1
+      accumulator.summary.gamesPlayed += tournament.gamesPlayed
+      accumulator.summary.totalScore += tournament.score
+      accumulator.summary.wins += tournament.wins
+      accumulator.summary.draws += tournament.draws
+      accumulator.summary.losses += tournament.losses
+      accumulator.summary.byes += tournament.byes
+      accumulator.summary.undefeatedTournaments += tournament.undefeated ? 1 : 0
+      accumulator.summary.lateEntries += tournament.lateEntry ? 1 : 0
+      accumulator.summary.dropouts += tournament.dropped ? 1 : 0
+      accumulator.summary.whiteGames += tournament.whiteGames
+      accumulator.summary.blackGames += tournament.blackGames
+      accumulator.summary.longestWhiteStreak = Math.max(
+        accumulator.summary.longestWhiteStreak,
+        tournament.longestWhiteStreak,
+      )
+      accumulator.summary.longestBlackStreak = Math.max(
+        accumulator.summary.longestBlackStreak,
+        tournament.longestBlackStreak,
+      )
+      accumulator.summary.lastPlayedAt =
+        !accumulator.summary.lastPlayedAt ||
+        new Date(tournament.updatedAt).getTime() > new Date(accumulator.summary.lastPlayedAt).getTime()
+          ? tournament.updatedAt
+          : accumulator.summary.lastPlayedAt
+      accumulator.buchholzSamples.push({
+        value: tournament.buchholz,
+        updatedAt: tournament.updatedAt,
+      })
+
+      for (const opponent of tournament.opponents) {
+        if (opponent.opponentName === 'BYE' || opponent.result === null || opponent.color === null) {
+          continue
+        }
+
+        if (opponent.color === 'W') {
+          accumulator.whiteCompletedGames += 1
+
+          if (opponent.result === '1-0') {
+            accumulator.whiteWins += 1
+          }
+        } else {
+          accumulator.blackCompletedGames += 1
+
+          if (opponent.result === '0-1') {
+            accumulator.blackWins += 1
+          }
+        }
+      }
+    }
+
+    const headToHeadMap = new Map<string, PlayerHeadToHeadStat>()
+    for (const tournament of tournaments) {
+      updateHeadToHeadStats(headToHeadMap, tournament)
+    }
+
+    detailMap.set(row.id, {
+      summary: finalizeSummary(accumulator),
+      tournaments,
+      headToHead: [...headToHeadMap.values()].sort((left, right) => {
+        if (left.gamesPlayed !== right.gamesPlayed) {
+          return right.gamesPlayed - left.gamesPlayed
+        }
+
+        return left.opponentName.localeCompare(right.opponentName)
+      }),
+      byeHistory: createByeHistory(tournaments),
+    })
+  }
+
+  return {
+    summaries: [...detailMap.values()]
+      .map((detail) => detail.summary)
+      .sort((left, right) => {
+        if (left.totalScore !== right.totalScore) {
+          return right.totalScore - left.totalScore
+        }
+
+        return left.name.localeCompare(right.name)
+      }),
+    details: detailMap,
+  }
+}
+
+export async function listPlayerStats(
+  username: AllowedUsername,
+): Promise<PlayerStatsSummary[]> {
+  const { summaries } = await buildStatsData(username)
+
+  return summaries
+}
+
+export async function getPlayerStatsDetail(
+  username: AllowedUsername,
+  playerId: string,
+): Promise<PlayerStatsDetail | null> {
+  const { details } = await buildStatsData(username)
+
+  return details.get(playerId) ?? null
 }
 
 export async function deletePlayerStats(

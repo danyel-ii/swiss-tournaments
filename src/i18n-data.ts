@@ -130,9 +130,42 @@ export type TranslationSet = {
     gamesPlayed: string
     score: string
     wins: string
+    winRate: string
+    winRateByColor: string
     draws: string
+    drawRate: string
     losses: string
+    lossRate: string
     byes: string
+    white: string
+    black: string
+    whiteBlack: string
+    colorImbalance: string
+    longestColorStreak: string
+    averageBuchholz: string
+    bestBuchholz: string
+    latestBuchholz: string
+    buchholz: string
+    rank: string
+    seedVsPlacement: string
+    scorePercentage: string
+    completedVsPartial: string
+    undefeated: string
+    undefeatedTournaments: string
+    lateEntries: string
+    dropouts: string
+    completed: string
+    inProgress: string
+    setup: string
+    headToHeadTitle: string
+    noHeadToHead: string
+    byeHistory: string
+    noByes: string
+    entryDrop: string
+    roundProgression: string
+    opponents: string
+    managePlayer: string
+    roundShort: (round: number) => string
     lastPlayed: string
     historyTitle: string
     noHistory: string
@@ -454,9 +487,42 @@ export const translations: Record<Language, TranslationSet> = {
       gamesPlayed: 'Games',
       score: 'Score',
       wins: 'Wins',
+      winRate: 'Win rate',
+      winRateByColor: 'Win rate by color',
       draws: 'Draws',
+      drawRate: 'Draw rate',
       losses: 'Losses',
+      lossRate: 'Loss rate',
       byes: 'Byes',
+      white: 'White',
+      black: 'Black',
+      whiteBlack: 'White / Black',
+      colorImbalance: 'Color imbalance',
+      longestColorStreak: 'Longest color streak',
+      averageBuchholz: 'Average Buchholz',
+      bestBuchholz: 'Best Buchholz',
+      latestBuchholz: 'Latest Buchholz',
+      buchholz: 'Buchholz',
+      rank: 'Placement',
+      seedVsPlacement: 'Seed to place',
+      scorePercentage: 'Score %',
+      completedVsPartial: 'Completed / Partial',
+      undefeated: 'Undefeated',
+      undefeatedTournaments: 'Undefeated events',
+      lateEntries: 'Late entries',
+      dropouts: 'Dropouts',
+      completed: 'Completed',
+      inProgress: 'In progress',
+      setup: 'Setup',
+      headToHeadTitle: 'Head-to-Head',
+      noHeadToHead: 'No head-to-head history yet.',
+      byeHistory: 'Bye History',
+      noByes: 'No byes recorded for this player.',
+      entryDrop: 'Entered / Dropped',
+      roundProgression: 'Round progression',
+      opponents: 'Opponents',
+      managePlayer: 'Manage player',
+      roundShort: (round: number) => `R${round}`,
       lastPlayed: 'Last played',
       historyTitle: 'Tournament History',
       noHistory: 'No completed stats are available for this player yet.',
@@ -710,9 +776,42 @@ export const translations: Record<Language, TranslationSet> = {
       gamesPlayed: 'Partien',
       score: 'Punkte',
       wins: 'Siege',
+      winRate: 'Siegquote',
+      winRateByColor: 'Siegquote nach Farbe',
       draws: 'Remis',
+      drawRate: 'Remisquote',
       losses: 'Niederlagen',
+      lossRate: 'Niederlagenquote',
       byes: 'Freilose',
+      white: 'Weiss',
+      black: 'Schwarz',
+      whiteBlack: 'Weiss / Schwarz',
+      colorImbalance: 'Farbungleichgewicht',
+      longestColorStreak: 'Laengste Farbserie',
+      averageBuchholz: 'Durchschnittliche Buchholz',
+      bestBuchholz: 'Beste Buchholz',
+      latestBuchholz: 'Letzte Buchholz',
+      buchholz: 'Buchholz',
+      rank: 'Platzierung',
+      seedVsPlacement: 'Setzliste zu Platz',
+      scorePercentage: 'Punktquote',
+      completedVsPartial: 'Abgeschlossen / Teilweise',
+      undefeated: 'Ungeschlagen',
+      undefeatedTournaments: 'Ungeschlagene Turniere',
+      lateEntries: 'Spaete Einstiege',
+      dropouts: 'Ausstiege',
+      completed: 'Abgeschlossen',
+      inProgress: 'Laeuft',
+      setup: 'Einrichtung',
+      headToHeadTitle: 'Direkter Vergleich',
+      noHeadToHead: 'Noch keine direkten Vergleiche vorhanden.',
+      byeHistory: 'Freilos-Historie',
+      noByes: 'Fuer diesen Spieler wurden keine Freilose verzeichnet.',
+      entryDrop: 'Einstieg / Ausstieg',
+      roundProgression: 'Rundenverlauf',
+      opponents: 'Gegner',
+      managePlayer: 'Spieler verwalten',
+      roundShort: (round: number) => `R${round}`,
       lastPlayed: 'Zuletzt gespielt',
       historyTitle: 'Turnierverlauf',
       noHistory: 'Fuer diesen Spieler liegen noch keine auswertbaren Daten vor.',
