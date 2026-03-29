@@ -119,52 +119,60 @@ export function DashboardView({
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr] xl:items-start">
-        <PlayerList
-          players={tournament.players}
-          status={tournament.status}
-          currentRound={tournament.currentRound}
-          libraryPlayers={libraryPlayers}
-          libraryLoading={libraryLoading}
-          libraryDeleting={libraryDeleting}
-          libraryError={libraryError}
-          playerName={playerName}
-          error={playerError}
-          duplicateWarning={duplicateWarning}
-          onPlayerNameChange={onPlayerNameChange}
-          onAddPlayer={onAddPlayer}
-          onAddLibraryPlayer={onAddLibraryPlayer}
-          onDeleteLibraryPlayer={onDeleteLibraryPlayer}
-          onRenamePlayer={onRenamePlayer}
-          onRemovePlayer={onRemovePlayer}
-        />
+        <div className="min-w-0">
+          <PlayerList
+            players={tournament.players}
+            status={tournament.status}
+            currentRound={tournament.currentRound}
+            libraryPlayers={libraryPlayers}
+            libraryLoading={libraryLoading}
+            libraryDeleting={libraryDeleting}
+            libraryError={libraryError}
+            playerName={playerName}
+            error={playerError}
+            duplicateWarning={duplicateWarning}
+            onPlayerNameChange={onPlayerNameChange}
+            onAddPlayer={onAddPlayer}
+            onAddLibraryPlayer={onAddLibraryPlayer}
+            onDeleteLibraryPlayer={onDeleteLibraryPlayer}
+            onRenamePlayer={onRenamePlayer}
+            onRemovePlayer={onRemovePlayer}
+          />
+        </div>
 
-        <StandingsTable
-          standings={standings}
-          players={tournament.players}
-          matches={tournament.matches}
-        />
+        <div className="min-w-0">
+          <StandingsTable
+            standings={standings}
+            players={tournament.players}
+            matches={tournament.matches}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr] xl:items-start">
-        <PairingsView
-          hasStarted={inProgress}
-          matches={viewedMatches}
-          players={tournament.players}
-          viewedRound={viewedRound}
-          isViewingCurrentRound={isViewingCurrentRound}
-          resultsEntered={resultsEntered}
-          resultTarget={resultTarget}
-          isRoundComplete={roundComplete}
-          onSetResult={onSetResult}
-        />
+        <div className="min-w-0">
+          <PairingsView
+            hasStarted={inProgress}
+            matches={viewedMatches}
+            players={tournament.players}
+            viewedRound={viewedRound}
+            isViewingCurrentRound={isViewingCurrentRound}
+            resultsEntered={resultsEntered}
+            resultTarget={resultTarget}
+            isRoundComplete={roundComplete}
+            onSetResult={onSetResult}
+          />
+        </div>
 
-        <ActionBar
-          canGenerateNextRound={canGenerateNextRound}
-          isCompleted={completed}
-          currentRound={tournament.currentRound}
-          totalRounds={tournament.totalRounds}
-          onGenerateNextRound={onGenerateNextRound}
-        />
+        <div className="min-w-0">
+          <ActionBar
+            canGenerateNextRound={canGenerateNextRound}
+            isCompleted={completed}
+            currentRound={tournament.currentRound}
+            totalRounds={tournament.totalRounds}
+            onGenerateNextRound={onGenerateNextRound}
+          />
+        </div>
       </div>
     </>
   )

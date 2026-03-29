@@ -68,11 +68,13 @@ textarea {
   background: var(--theme-surface);
   border: 1px solid var(--theme-border);
   box-shadow: var(--theme-shadow);
+  min-width: 0;
 }
 
 .theme-muted-panel {
   background: color-mix(in srgb, var(--theme-cream) 76%, white 24%);
   border: 1px solid rgba(54, 6, 77, 0.08);
+  min-width: 0;
 }
 
 .theme-heading {
