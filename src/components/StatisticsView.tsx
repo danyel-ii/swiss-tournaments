@@ -40,12 +40,27 @@ export function StatisticsView({
   const { t } = useI18n()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const effectiveSelectedPlayerId = detail?.summary.playerId ?? selectedPlayerId ?? players[0]?.playerId ?? null
-  const showMobileDetail = selectedPlayerId !== null || detail !== null
+  const showMobileDetail = selectedPlayerId !== null
 
   const selectedSummary = useMemo(
     () => players.find((entry) => entry.playerId === effectiveSelectedPlayerId) ?? players[0] ?? null,
     [effectiveSelectedPlayerId, players],
   )
+  const orderedPlayers = useMemo(() => {
+    if (!effectiveSelectedPlayerId) {
+      return players
+    }
+
+    const selectedIndex = players.findIndex((entry) => entry.playerId === effectiveSelectedPlayerId)
+
+    if (selectedIndex <= 0) {
+      return players
+    }
+
+    const selectedPlayer = players[selectedIndex]
+
+    return [selectedPlayer, ...players.slice(0, selectedIndex), ...players.slice(selectedIndex + 1)]
+  }, [effectiveSelectedPlayerId, players])
 
   const summaryCards = selectedSummary
     ? [
@@ -97,7 +112,7 @@ export function StatisticsView({
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <div className={`space-y-3 min-w-0 ${showMobileDetail ? 'hidden xl:block' : ''}`}>
-            {players.map((player) => {
+            {orderedPlayers.map((player) => {
               const isSelected = player.playerId === effectiveSelectedPlayerId
 
               return (
@@ -140,7 +155,7 @@ export function StatisticsView({
             })}
           </div>
 
-          <div className="min-w-0 space-y-6">
+          <div className={`min-w-0 space-y-6 ${showMobileDetail ? 'block' : 'hidden xl:block'}`}>
             {selectedSummary && detail ? (
               <>
                 <div className="xl:hidden">
