@@ -5,7 +5,7 @@ import type {
   PlayerColor,
   PlayerStanding,
   Tournament,
-} from '../types/tournament'
+} from '../types/tournament.js'
 
 function sortMatchesChronologically(matches: Match[]): Match[] {
   return [...matches].sort((left, right) => {
