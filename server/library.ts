@@ -606,9 +606,10 @@ function buildPlayerTournamentStat(
     return null
   }
 
+  const evaluationRound = Math.max(snapshot.record.current_round, player.enteredRound, 1)
   const standingsPool = getPlayersEnteredByRound(
     snapshot.players,
-    Math.max(snapshot.record.current_round, 1),
+    evaluationRound,
   )
   const standing = getPlayerStats(player.id, standingsPool, snapshot.matches)
   const aggregate = createTournamentAggregate(player.id, snapshot.matches)
