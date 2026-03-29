@@ -40,6 +40,7 @@ export function StatisticsView({
   const { t } = useI18n()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const effectiveSelectedPlayerId = detail?.summary.playerId ?? selectedPlayerId ?? players[0]?.playerId ?? null
+  const showMobileDetail = selectedPlayerId !== null || detail !== null
 
   const selectedSummary = useMemo(
     () => players.find((entry) => entry.playerId === effectiveSelectedPlayerId) ?? players[0] ?? null,
@@ -95,7 +96,7 @@ export function StatisticsView({
         <div className="theme-copy mt-6 font-data text-base">{t.statistics.empty}</div>
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-3">
+          <div className={`space-y-3 min-w-0 ${showMobileDetail ? 'hidden xl:block' : ''}`}>
             {players.map((player) => {
               const isSelected = player.playerId === effectiveSelectedPlayerId
 
@@ -113,19 +114,19 @@ export function StatisticsView({
                       : 'border-[var(--theme-border)] bg-[var(--theme-surface)]'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 min-w-0">
                     <div className="min-w-0">
                       <p className="theme-heading truncate font-display text-2xl font-semibold">
                         {player.name}
                       </p>
-                      <p className="theme-copy mt-1 font-data text-sm">
+                      <p className="theme-copy mt-1 break-words font-data text-sm">
                         {t.statistics.tournamentsPlayed}: {player.tournamentsPlayed} · {t.statistics.gamesPlayed}: {player.gamesPlayed}
                       </p>
-                      <p className="theme-copy mt-1 font-data text-sm">
+                      <p className="theme-copy mt-1 break-words font-data text-sm">
                         {t.statistics.averageBuchholz}: {formatScore(player.averageBuchholz)} · {t.statistics.whiteBlack}: {player.whiteGames}/{player.blackGames}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <p className="font-display text-3xl font-bold text-[var(--theme-red)]">
                         {formatScore(player.totalScore)}
                       </p>
@@ -139,16 +140,29 @@ export function StatisticsView({
             })}
           </div>
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             {selectedSummary && detail ? (
               <>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="xl:hidden">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPlayerId(null)
+                      onSelectPlayer(null)
+                    }}
+                    className="rounded-full bg-[var(--theme-surface)] px-4 py-2 font-display text-sm font-semibold transition"
+                  >
+                    {t.statistics.backToPlayers}
+                  </button>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                   {summaryCards.map(([label, value]) => (
-                    <article key={label} className="theme-muted-panel rounded-3xl px-4 py-4">
+                    <article key={label} className="theme-muted-panel min-w-0 rounded-3xl px-4 py-4">
                       <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
                         {label}
                       </p>
-                      <p className="theme-heading mt-2 font-display text-2xl font-semibold">
+                      <p className="theme-heading mt-2 break-words font-display text-2xl font-semibold">
                         {value}
                       </p>
                     </article>
@@ -156,28 +170,28 @@ export function StatisticsView({
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                  <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
                     <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
                       {t.statistics.lastPlayed}
                     </p>
-                    <p className="theme-heading mt-2 font-display text-xl font-semibold">
+                    <p className="theme-heading mt-2 break-words font-display text-xl font-semibold">
                       {selectedSummary.lastPlayedAt ? formatDateTime(selectedSummary.lastPlayedAt) : '—'}
                     </p>
-                    <p className="theme-copy mt-3 font-data text-sm">
+                    <p className="theme-copy mt-3 break-words font-data text-sm">
                       {t.statistics.winRate}: {formatPercent(selectedSummary.winRate)} · {t.statistics.drawRate}: {formatPercent(selectedSummary.drawRate)} · {t.statistics.lossRate}: {formatPercent(selectedSummary.lossRate)}
                     </p>
-                    <p className="theme-copy mt-1 font-data text-sm">
+                    <p className="theme-copy mt-1 break-words font-data text-sm">
                       {t.statistics.winRateByColor}: {t.statistics.white} {formatPercent(selectedSummary.winRateAsWhite)} · {t.statistics.black} {formatPercent(selectedSummary.winRateAsBlack)}
                     </p>
                   </div>
 
-                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                  <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
                           {t.statistics.managePlayer}
                         </p>
-                        <p className="theme-heading mt-2 font-display text-xl font-semibold">
+                        <p className="theme-heading mt-2 break-words font-display text-xl font-semibold">
                           {selectedSummary.name}
                         </p>
                       </div>
@@ -205,16 +219,16 @@ export function StatisticsView({
                         {t.statistics.deletePlayer}
                       </button>
                     </div>
-                    <p className="theme-copy mt-3 font-data text-sm">
+                    <p className="theme-copy mt-3 break-words font-data text-sm">
                       {t.statistics.byeHistory}: {detail.byeHistory.length}
                     </p>
-                    <p className="theme-copy mt-1 font-data text-sm">
+                    <p className="theme-copy mt-1 break-words font-data text-sm">
                       {t.statistics.headToHeadTitle}: {detail.headToHead.length}
                     </p>
                   </div>
                 </div>
 
-                <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
                   <h3 className="theme-heading font-display text-2xl font-semibold">
                     {t.statistics.historyTitle}
                   </h3>
@@ -224,18 +238,18 @@ export function StatisticsView({
                       {detail.tournaments.map((tournament) => (
                         <article
                           key={tournament.tournamentId}
-                          className="rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                          className="min-w-0 rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <p className="theme-heading font-display text-xl font-semibold">
+                          <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
+                            <div className="min-w-0">
+                              <p className="theme-heading break-words font-display text-xl font-semibold">
                                 {tournament.tournamentName}
                               </p>
-                              <p className="theme-copy mt-1 font-data text-sm">
+                              <p className="theme-copy mt-1 break-words font-data text-sm">
                                 {formatDateTime(tournament.updatedAt)} · {getTournamentStatusLabel(tournament, t)}
                               </p>
                             </div>
-                            <div className="text-right">
+                            <div className="shrink-0 text-right">
                               <p className="font-display text-2xl font-bold text-[var(--theme-red)]">
                                 {formatScore(tournament.score)}
                               </p>
@@ -260,7 +274,7 @@ export function StatisticsView({
                                 <p className="font-display text-[11px] uppercase tracking-[0.22em] text-[var(--theme-text-soft)]">
                                   {label}
                                 </p>
-                                <p className="theme-heading mt-1 font-display text-lg font-semibold">
+                                <p className="theme-heading mt-1 break-words font-display text-lg font-semibold">
                                   {value}
                                 </p>
                               </div>
@@ -275,7 +289,7 @@ export function StatisticsView({
                               {tournament.rounds.map((round) => (
                                 <span
                                   key={`${tournament.tournamentId}-round-${round.round}`}
-                                  className="rounded-full bg-[var(--theme-aqua-soft)] px-3 py-1.5 font-data text-sm text-[var(--theme-plum)]"
+                                  className="max-w-full break-words rounded-3xl bg-[var(--theme-aqua-soft)] px-3 py-1.5 font-data text-sm text-[var(--theme-plum)]"
                                 >
                                   {t.statistics.roundShort(round.round)} {formatScore(round.score)} / {formatScore(round.buchholz)} / #{round.rank}
                                 </span>
@@ -291,7 +305,7 @@ export function StatisticsView({
                               {tournament.opponents.map((opponent, index) => (
                                 <span
                                   key={`${tournament.tournamentId}-opp-${index}`}
-                                  className="rounded-full bg-[var(--theme-surface-strong)] px-3 py-1.5 font-data text-sm text-[var(--theme-text)]"
+                                  className="max-w-full break-words rounded-3xl bg-[var(--theme-surface-strong)] px-3 py-1.5 font-data text-sm text-[var(--theme-text)]"
                                 >
                                   {t.statistics.roundShort(opponent.round)} · {opponent.color ?? '—'} · {opponent.opponentName} · {opponent.result ?? t.common.pending}
                                 </span>
@@ -307,7 +321,7 @@ export function StatisticsView({
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                  <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
                     <h3 className="theme-heading font-display text-2xl font-semibold">
                       {t.statistics.headToHeadTitle}
                     </h3>
@@ -316,18 +330,18 @@ export function StatisticsView({
                         {detail.headToHead.map((entry, index) => (
                           <article
                             key={`${entry.opponentPlayerId ?? entry.opponentName}-${index}`}
-                            className="rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                            className="min-w-0 rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
                           >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="theme-heading font-display text-lg font-semibold">
+                            <div className="flex items-start justify-between gap-3 min-w-0">
+                              <div className="min-w-0">
+                                <p className="theme-heading break-words font-display text-lg font-semibold">
                                   {entry.opponentName}
                                 </p>
-                                <p className="theme-copy mt-1 font-data text-sm">
+                                <p className="theme-copy mt-1 break-words font-data text-sm">
                                   {t.statistics.tournamentsPlayed}: {entry.tournamentsPlayed} · {t.statistics.gamesPlayed}: {entry.gamesPlayed}
                                 </p>
                               </div>
-                              <div className="text-right">
+                              <div className="shrink-0 text-right">
                                 <p className="font-display text-xl font-bold text-[var(--theme-red)]">
                                   {formatScore(entry.score)}
                                 </p>
@@ -336,10 +350,10 @@ export function StatisticsView({
                                 </p>
                               </div>
                             </div>
-                            <p className="theme-copy mt-3 font-data text-sm">
+                            <p className="theme-copy mt-3 break-words font-data text-sm">
                               {t.statistics.wins}: {entry.wins} · {t.statistics.draws}: {entry.draws} · {t.statistics.losses}: {entry.losses}
                             </p>
-                            <p className="theme-copy mt-1 font-data text-sm">
+                            <p className="theme-copy mt-1 break-words font-data text-sm">
                               {t.statistics.whiteBlack}: {entry.whiteGames}/{entry.blackGames} · {t.statistics.lastPlayed}: {entry.lastPlayedAt ? formatDateTime(entry.lastPlayedAt) : '—'}
                             </p>
                           </article>
@@ -350,7 +364,7 @@ export function StatisticsView({
                     )}
                   </div>
 
-                  <div className="theme-muted-panel rounded-3xl px-5 py-4">
+                  <div className="theme-muted-panel min-w-0 rounded-3xl px-5 py-4">
                     <h3 className="theme-heading font-display text-2xl font-semibold">
                       {t.statistics.byeHistory}
                     </h3>
@@ -359,12 +373,12 @@ export function StatisticsView({
                         {detail.byeHistory.map((entry) => (
                           <article
                             key={`${entry.tournamentId}-${entry.round}`}
-                            className="rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
+                            className="min-w-0 rounded-3xl border border-[rgba(54,6,77,0.12)] bg-[var(--theme-surface)] px-4 py-4"
                           >
-                            <p className="theme-heading font-display text-lg font-semibold">
+                            <p className="theme-heading break-words font-display text-lg font-semibold">
                               {entry.tournamentName}
                             </p>
-                            <p className="theme-copy mt-1 font-data text-sm">
+                            <p className="theme-copy mt-1 break-words font-data text-sm">
                               {formatDateTime(entry.updatedAt)} · {t.statistics.roundShort(entry.round)}
                             </p>
                           </article>
@@ -376,7 +390,11 @@ export function StatisticsView({
                   </div>
                 </div>
               </>
-            ) : null}
+            ) : (
+              <div className="theme-copy rounded-3xl bg-[var(--theme-surface)] px-4 py-6 font-data text-sm xl:hidden">
+                {t.statistics.selectPlayer}
+              </div>
+            )}
           </div>
         </div>
       )}

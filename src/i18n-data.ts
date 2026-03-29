@@ -127,6 +127,8 @@ export type TranslationSet = {
     subtitle: string
     empty: string
     loading: string
+    selectPlayer: string
+    backToPlayers: string
     deletePlayer: string
     deletePlayerConfirm: (name: string) => string
     tournamentsPlayed: string
@@ -486,6 +488,8 @@ export const translations: Record<Language, TranslationSet> = {
       subtitle: 'Inspect player performance across all tournaments saved for this account.',
       empty: 'No player statistics yet. Finish or save tournaments with players to build the library.',
       loading: 'Loading player statistics...',
+      selectPlayer: 'Select player',
+      backToPlayers: 'Back to players',
       deletePlayer: 'Delete Player Stats',
       deletePlayerConfirm: (name) =>
         `Delete all saved statistics for "${name}"? Tournaments stay intact, but this player is removed from the library and historical stats.`,
@@ -778,6 +782,8 @@ export const translations: Record<Language, TranslationSet> = {
       subtitle: 'Leistungen der Spieler ueber alle fuer dieses Konto gespeicherten Turniere hinweg ansehen.',
       empty: 'Noch keine Spielerstatistiken vorhanden. Speichere Turniere mit Spielern, um die Bibliothek aufzubauen.',
       loading: 'Spielerstatistiken werden geladen...',
+      selectPlayer: 'Spieler auswaehlen',
+      backToPlayers: 'Zurueck zur Liste',
       deletePlayer: 'Spielerstatistik loeschen',
       deletePlayerConfirm: (name) =>
         `Alle gespeicherten Statistiken fuer "${name}" loeschen? Turniere bleiben erhalten, aber dieser Spieler wird aus Bibliothek und historischer Statistik entfernt.`,
