@@ -10,6 +10,7 @@ interface TournamentControlsProps {
   onPairingAlgorithmChange: (value: PairingAlgorithm) => void
   onStart: () => void
   onExport: () => void
+  onExportAllPlayerStats: () => void
   onReset: () => void
 }
 
@@ -21,6 +22,7 @@ export function TournamentControls({
   onPairingAlgorithmChange,
   onStart,
   onExport,
+  onExportAllPlayerStats,
   onReset,
 }: TournamentControlsProps) {
   const { t } = useI18n()
@@ -132,6 +134,14 @@ export function TournamentControls({
             className="theme-button-aqua font-display rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed"
           >
             {t.controls.exportReport}
+          </button>
+
+          <button
+            type="button"
+            onClick={onExportAllPlayerStats}
+            className="theme-button-aqua font-display rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none"
+          >
+            {t.controls.exportAllPlayerStats}
           </button>
 
           <button

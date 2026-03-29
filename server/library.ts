@@ -7,6 +7,9 @@ import {
   getPlayerStats,
 } from '../src/core/ranking.js'
 import type {
+  HeadToHeadDetail,
+  HeadToHeadMatch,
+  HeadToHeadTournament,
   LibraryPlayer,
   PlayerByeHistoryItem,
   PlayerHeadToHeadStat,
@@ -83,6 +86,13 @@ interface SummaryAccumulator {
   whiteCompletedGames: number
   blackWins: number
   blackCompletedGames: number
+}
+
+interface HeadToHeadContext {
+  leftPlayerId: string
+  leftPlayerName: string
+  rightPlayerId: string
+  rightPlayerName: string
 }
 
 let ensureLibrarySchemaPromise: Promise<void> | null = null
@@ -734,6 +744,60 @@ function createByeHistory(tournaments: PlayerTournamentStat[]): PlayerByeHistory
   )
 }
 
+function buildHeadToHeadTournament(
+  context: HeadToHeadContext,
+  snapshot: TournamentSnapshot,
+): HeadToHeadTournament | null {
+  const matches = sortMatchesChronologically(snapshot.matches)
+    .filter((match) => {
+      if (match.isBye || match.blackPlayerId === null || match.result === null) {
+        return false
+      }
+
+      const whiteLibraryPlayerId = snapshot.playerById.get(match.whitePlayerId)?.libraryPlayerId ?? null
+      const blackLibraryPlayerId = snapshot.playerById.get(match.blackPlayerId)?.libraryPlayerId ?? null
+
+      return (
+        (whiteLibraryPlayerId === context.leftPlayerId && blackLibraryPlayerId === context.rightPlayerId) ||
+        (whiteLibraryPlayerId === context.rightPlayerId && blackLibraryPlayerId === context.leftPlayerId)
+      )
+    })
+    .map((match) => {
+      const whiteLibraryPlayerId = snapshot.playerById.get(match.whitePlayerId)?.libraryPlayerId ?? null
+      const leftIsWhite = whiteLibraryPlayerId === context.leftPlayerId
+
+      const entry: HeadToHeadMatch = {
+        tournamentId: snapshot.record.tournament_id,
+        tournamentName: snapshot.record.name,
+        updatedAt: snapshot.record.updated_at,
+        round: match.round,
+        board: match.board,
+        result: match.result,
+        leftColor: leftIsWhite ? 'W' : 'B',
+        rightColor: leftIsWhite ? 'B' : 'W',
+        leftPoints: getMatchPointsForPlayer(match, leftIsWhite ? match.whitePlayerId : (match.blackPlayerId as string)),
+        rightPoints: getMatchPointsForPlayer(match, leftIsWhite ? (match.blackPlayerId as string) : match.whitePlayerId),
+      }
+
+      return entry
+    })
+
+  if (matches.length === 0) {
+    return null
+  }
+
+  return {
+    tournamentId: snapshot.record.tournament_id,
+    tournamentName: snapshot.record.name,
+    updatedAt: snapshot.record.updated_at,
+    status: snapshot.record.status,
+    leftScore: matches.reduce((total, match) => total + match.leftPoints, 0),
+    rightScore: matches.reduce((total, match) => total + match.rightPoints, 0),
+    gamesPlayed: matches.length,
+    matches,
+  }
+}
+
 function finalizeSummary(accumulator: SummaryAccumulator): PlayerStatsSummary {
   const { summary, buchholzSamples, whiteWins, whiteCompletedGames, blackWins, blackCompletedGames } = accumulator
   const latestBuchholzSample = [...buchholzSamples].sort(
@@ -945,6 +1009,79 @@ export async function getPlayerStatsDetail(
   const { details } = await buildStatsData(username)
 
   return details.get(playerId) ?? null
+}
+
+export async function getHeadToHeadDetail(
+  username: AllowedUsername,
+  leftPlayerId: string,
+  rightPlayerId: string,
+): Promise<HeadToHeadDetail | null> {
+  if (leftPlayerId === rightPlayerId) {
+    return null
+  }
+
+  const { libraryRows, tournamentRows, playerRows, matchRows } = await loadStatsProjection(username)
+  const leftPlayer = libraryRows.find((row) => row.id === leftPlayerId)
+  const rightPlayer = libraryRows.find((row) => row.id === rightPlayerId)
+
+  if (!leftPlayer || !rightPlayer) {
+    return null
+  }
+
+  const snapshots = buildTournamentSnapshots(tournamentRows, playerRows, matchRows)
+  const context: HeadToHeadContext = {
+    leftPlayerId,
+    leftPlayerName: leftPlayer.display_name,
+    rightPlayerId,
+    rightPlayerName: rightPlayer.display_name,
+  }
+
+  const tournaments = [...snapshots.values()]
+    .map((snapshot) => buildHeadToHeadTournament(context, snapshot))
+    .filter((entry): entry is HeadToHeadTournament => entry !== null)
+    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+
+  const detail: HeadToHeadDetail = {
+    leftPlayerId,
+    leftPlayerName: leftPlayer.display_name,
+    rightPlayerId,
+    rightPlayerName: rightPlayer.display_name,
+    gamesPlayed: tournaments.reduce((total, tournament) => total + tournament.gamesPlayed, 0),
+    leftScore: tournaments.reduce((total, tournament) => total + tournament.leftScore, 0),
+    rightScore: tournaments.reduce((total, tournament) => total + tournament.rightScore, 0),
+    leftWins: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.leftPoints === 1).length,
+      0,
+    ),
+    rightWins: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.rightPoints === 1).length,
+      0,
+    ),
+    draws: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.leftPoints === 0.5).length,
+      0,
+    ),
+    leftWhiteGames: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.leftColor === 'W').length,
+      0,
+    ),
+    leftBlackGames: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.leftColor === 'B').length,
+      0,
+    ),
+    rightWhiteGames: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.rightColor === 'W').length,
+      0,
+    ),
+    rightBlackGames: tournaments.reduce(
+      (total, tournament) => total + tournament.matches.filter((match) => match.rightColor === 'B').length,
+      0,
+    ),
+    lastPlayedAt: tournaments[0]?.updatedAt ?? null,
+    tournaments,
+  }
+
+  return detail
 }
 
 export async function deletePlayerStats(

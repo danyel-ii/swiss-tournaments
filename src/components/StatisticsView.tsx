@@ -11,6 +11,7 @@ interface StatisticsViewProps {
   error: string | null
   onSelectPlayer: (playerId: string | null) => void
   onDeletePlayer: (playerId: string) => Promise<void>
+  onExportPlayer: (detail: PlayerStatsDetail) => void
 }
 
 function getTournamentStatusLabel(
@@ -36,6 +37,7 @@ export function StatisticsView({
   error,
   onSelectPlayer,
   onDeletePlayer,
+  onExportPlayer,
 }: StatisticsViewProps) {
   const { t } = useI18n()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
@@ -190,6 +192,13 @@ export function StatisticsView({
                         {selectedSummary.name}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => onExportPlayer(detail)}
+                      className="rounded-full bg-[var(--theme-aqua-soft)] px-4 py-3 font-display text-sm font-semibold text-[var(--theme-plum)] transition"
+                    >
+                      {t.statistics.exportPlayerStats}
+                    </button>
                     <button
                       type="button"
                       disabled={deleting}

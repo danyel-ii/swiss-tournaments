@@ -34,6 +34,7 @@ export type TranslationSet = {
     live: string
     standings: string
     statistics: string
+    headToHead: string
   }
   live: {
     title: string
@@ -69,6 +70,7 @@ export type TranslationSet = {
     increaseRounds: string
     startTournament: string
     exportReport: string
+    exportAllPlayerStats: string
     resetTournament: string
     resetConfirm: string
   }
@@ -129,6 +131,7 @@ export type TranslationSet = {
     loading: string
     selectPlayer: string
     backToPlayers: string
+    exportPlayerStats: string
     deletePlayer: string
     deletePlayerConfirm: (name: string) => string
     tournamentsPlayed: string
@@ -174,6 +177,20 @@ export type TranslationSet = {
     lastPlayed: string
     historyTitle: string
     noHistory: string
+  }
+  headToHead: {
+    title: string
+    subtitle: string
+    playerA: string
+    playerB: string
+    selectPlayer: string
+    choosePlayers: string
+    samePlayer: string
+    loading: string
+    noGames: string
+    tournamentMeetings: string
+    lastMeeting: string
+    wins: (name: string) => string
   }
   standings: {
     title: string
@@ -309,6 +326,7 @@ export const translations: Record<Language, TranslationSet> = {
       live: 'Live View',
       standings: 'Standings',
       statistics: 'Statistics',
+      headToHead: 'Head-to-Head',
     },
     live: {
       title: 'Live Round Desk',
@@ -348,6 +366,7 @@ export const translations: Record<Language, TranslationSet> = {
       increaseRounds: 'Increase rounds',
       startTournament: 'Start Tournament',
       exportReport: 'Download Report (.md)',
+      exportAllPlayerStats: 'Download All Player Stats (.md)',
       resetTournament: 'Reset Tournament',
       resetConfirm: 'Reset the tournament and clear saved state?',
     },
@@ -490,6 +509,7 @@ export const translations: Record<Language, TranslationSet> = {
       loading: 'Loading player statistics...',
       selectPlayer: 'Select player',
       backToPlayers: 'Back to players',
+      exportPlayerStats: 'Download Stats (.md)',
       deletePlayer: 'Delete Player Stats',
       deletePlayerConfirm: (name) =>
         `Delete all saved statistics for "${name}"? Tournaments stay intact, but this player is removed from the library and historical stats.`,
@@ -536,6 +556,20 @@ export const translations: Record<Language, TranslationSet> = {
       lastPlayed: 'Last played',
       historyTitle: 'Tournament History',
       noHistory: 'No completed stats are available for this player yet.',
+    },
+    headToHead: {
+      title: 'Head-to-Head',
+      subtitle: 'Compare two players across all recorded tournaments for this account.',
+      playerA: 'Player A',
+      playerB: 'Player B',
+      selectPlayer: 'Select player',
+      choosePlayers: 'Choose two players to compare.',
+      samePlayer: 'Choose two different players.',
+      loading: 'Loading head-to-head data...',
+      noGames: 'No recorded games between these two players yet.',
+      tournamentMeetings: 'Tournament Meetings',
+      lastMeeting: 'Last meeting',
+      wins: (name) => `${name} wins`,
     },
     auth: {
       eyebrow: 'Private Access',
@@ -602,6 +636,7 @@ export const translations: Record<Language, TranslationSet> = {
       live: 'Live Ansicht',
       standings: 'Tabelle',
       statistics: 'Statistik',
+      headToHead: 'Direkter Vergleich',
     },
     live: {
       title: 'Live-Rundenansicht',
@@ -642,6 +677,7 @@ export const translations: Record<Language, TranslationSet> = {
       increaseRounds: 'Runden erhoehen',
       startTournament: 'Turnier starten',
       exportReport: 'Bericht herunterladen (.md)',
+      exportAllPlayerStats: 'Alle Spielerstatistiken herunterladen (.md)',
       resetTournament: 'Turnier zuruecksetzen',
       resetConfirm: 'Turnier zuruecksetzen und gespeicherten Stand loeschen?',
     },
@@ -784,6 +820,7 @@ export const translations: Record<Language, TranslationSet> = {
       loading: 'Spielerstatistiken werden geladen...',
       selectPlayer: 'Spieler auswaehlen',
       backToPlayers: 'Zurueck zur Liste',
+      exportPlayerStats: 'Statistik herunterladen (.md)',
       deletePlayer: 'Spielerstatistik loeschen',
       deletePlayerConfirm: (name) =>
         `Alle gespeicherten Statistiken fuer "${name}" loeschen? Turniere bleiben erhalten, aber dieser Spieler wird aus Bibliothek und historischer Statistik entfernt.`,
@@ -830,6 +867,20 @@ export const translations: Record<Language, TranslationSet> = {
       lastPlayed: 'Zuletzt gespielt',
       historyTitle: 'Turnierverlauf',
       noHistory: 'Fuer diesen Spieler liegen noch keine auswertbaren Daten vor.',
+    },
+    headToHead: {
+      title: 'Direkter Vergleich',
+      subtitle: 'Vergleiche zwei Spieler ueber alle fuer dieses Konto erfassten Turniere hinweg.',
+      playerA: 'Spieler A',
+      playerB: 'Spieler B',
+      selectPlayer: 'Spieler auswaehlen',
+      choosePlayers: 'Waehle zwei Spieler fuer den Vergleich aus.',
+      samePlayer: 'Waehle zwei unterschiedliche Spieler aus.',
+      loading: 'Direkter Vergleich wird geladen...',
+      noGames: 'Zwischen diesen beiden Spielern sind noch keine Partien erfasst.',
+      tournamentMeetings: 'Begegnungen nach Turnier',
+      lastMeeting: 'Letzte Begegnung',
+      wins: (name) => `${name} Siege`,
     },
     auth: {
       eyebrow: 'Privater Zugang',

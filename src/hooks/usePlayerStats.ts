@@ -110,6 +110,11 @@ export function usePlayerStats(
     }
   }
 
+  const loadDetail = async (playerId: string) =>
+    apiRequest<PlayerStatsDetail>(
+      `/api/player-stats?playerId=${encodeURIComponent(playerId)}`,
+    )
+
   return {
     players,
     detail,
@@ -117,5 +122,6 @@ export function usePlayerStats(
     mutating,
     error,
     deletePlayer,
+    loadDetail,
   }
 }

@@ -1,5 +1,6 @@
 import { type Dispatch, useMemo, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
+import { HeadToHeadView } from './components/HeadToHeadView'
 import { InstallPrompt } from './components/InstallPrompt'
 import { LiveView } from './components/LiveView'
 import { LoginView } from './components/LoginView'
@@ -9,6 +10,7 @@ import { TournamentDirectoryView } from './components/TournamentDirectoryView'
 import { TournamentHeader } from './components/TournamentHeader'
 import { ViewTabs } from './components/ViewTabs'
 import { useAuth } from './hooks/useAuth'
+import { useHeadToHead } from './hooks/useHeadToHead'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { usePlayerLibrary } from './hooks/usePlayerLibrary'
 import { usePlayerStats } from './hooks/usePlayerStats'
@@ -24,9 +26,11 @@ import {
 } from './core/ranking'
 import { type TournamentAction, useTournament } from './hooks/useTournament'
 import type { LibraryPlayer } from './types/library'
+import type { AppView } from './types/views'
 import type { Tournament } from './types/tournament'
 import type { ManualMatchResult } from './types/tournament'
 import { downloadTournamentExport } from './utils/export'
+import { downloadAllPlayerStats, downloadPlayerStats, loadAllPlayerStatsDetails } from './utils/playerStatsExport'
 
 interface TournamentWorkspaceProps {
   username: string
@@ -51,8 +55,14 @@ interface TournamentWorkspaceProps {
   statisticsError: string | null
   onSelectStatsPlayer: (playerId: string | null) => void
   onDeleteStatsPlayer: (playerId: string) => Promise<void>
-  activeView: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'
-  setActiveView: (view: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics') => void
+  onExportStatsPlayer: (detail: NonNullable<ReturnType<typeof usePlayerStats>['detail']>) => void
+  onExportAllPlayerStats: () => Promise<void>
+  headToHeadDetail: ReturnType<typeof useHeadToHead>['detail']
+  headToHeadLoading: boolean
+  headToHeadError: string | null
+  onHeadToHeadChange: (leftPlayerId: string | null, rightPlayerId: string | null) => void
+  activeView: AppView
+  setActiveView: (view: AppView) => void
 }
 
 function TournamentWorkspace({
@@ -78,6 +88,12 @@ function TournamentWorkspace({
   statisticsError,
   onSelectStatsPlayer,
   onDeleteStatsPlayer,
+  onExportStatsPlayer,
+  onExportAllPlayerStats,
+  headToHeadDetail,
+  headToHeadLoading,
+  headToHeadError,
+  onHeadToHeadChange,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -335,6 +351,15 @@ function TournamentWorkspace({
             error={statisticsError}
             onSelectPlayer={onSelectStatsPlayer}
             onDeletePlayer={onDeleteStatsPlayer}
+            onExportPlayer={onExportStatsPlayer}
+          />
+        ) : activeView === 'headToHead' ? (
+          <HeadToHeadView
+            players={statisticsPlayers}
+            detail={headToHeadDetail}
+            loading={headToHeadLoading}
+            error={headToHeadError}
+            onChangePlayers={onHeadToHeadChange}
           />
         ) : (
           <DashboardView
@@ -372,6 +397,9 @@ function TournamentWorkspace({
             }
             onStart={handleStart}
             onExport={() => downloadTournamentExport(tournament)}
+            onExportAllPlayerStats={() => {
+              void onExportAllPlayerStats()
+            }}
             onReset={handleReset}
             onSelectRound={setSelectedRound}
             onPlayerNameChange={(value) => {
@@ -429,8 +457,10 @@ function App() {
   } = useTournament(
     auth.user !== null,
   )
-  const [activeView, setActiveView] = useState<'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'>('dashboard')
+  const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [selectedStatsPlayerId, setSelectedStatsPlayerId] = useState<string | null>(null)
+  const [headToHeadLeftPlayerId, setHeadToHeadLeftPlayerId] = useState<string | null>(null)
+  const [headToHeadRightPlayerId, setHeadToHeadRightPlayerId] = useState<string | null>(null)
   const workspaceRefreshKey = useMemo(
     () =>
       tournaments
@@ -440,6 +470,12 @@ function App() {
   )
   const playerLibrary = usePlayerLibrary(auth.user !== null, workspaceRefreshKey)
   const playerStats = usePlayerStats(auth.user !== null, workspaceRefreshKey, selectedStatsPlayerId)
+  const headToHead = useHeadToHead(
+    auth.user !== null,
+    workspaceRefreshKey,
+    headToHeadLeftPlayerId,
+    headToHeadRightPlayerId,
+  )
 
   if (auth.loading) {
     return <LoadingScreen label={t.auth.loadingSession} />
@@ -504,6 +540,21 @@ function App() {
         statisticsError={playerStats.error}
         onSelectStatsPlayer={setSelectedStatsPlayerId}
         onDeleteStatsPlayer={playerStats.deletePlayer}
+        onExportStatsPlayer={downloadPlayerStats}
+        onExportAllPlayerStats={async () => {
+          const details = await loadAllPlayerStatsDetails(
+            playerStats.players,
+            playerStats.loadDetail,
+          )
+          downloadAllPlayerStats(details)
+        }}
+        headToHeadDetail={headToHead.detail}
+        headToHeadLoading={headToHead.loading}
+        headToHeadError={headToHead.error}
+        onHeadToHeadChange={(leftPlayerId, rightPlayerId) => {
+          setHeadToHeadLeftPlayerId(leftPlayerId)
+          setHeadToHeadRightPlayerId(rightPlayerId)
+        }}
         activeView={activeView}
         setActiveView={setActiveView}
       />

@@ -37,6 +37,7 @@ interface DashboardViewProps {
   onPairingAlgorithmChange: (value: PairingAlgorithm) => void
   onStart: () => void
   onExport: () => void
+  onExportAllPlayerStats: () => void
   onReset: () => void
   onSelectRound: (round: number) => void
   onPlayerNameChange: (value: string) => void
@@ -78,6 +79,7 @@ export function DashboardView({
   onPairingAlgorithmChange,
   onStart,
   onExport,
+  onExportAllPlayerStats,
   onReset,
   onSelectRound,
   onPlayerNameChange,
@@ -100,6 +102,7 @@ export function DashboardView({
         onPairingAlgorithmChange={onPairingAlgorithmChange}
         onStart={onStart}
         onExport={onExport}
+        onExportAllPlayerStats={onExportAllPlayerStats}
         onReset={onReset}
       />
 

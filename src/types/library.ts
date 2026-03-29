@@ -114,3 +114,46 @@ export interface PlayerStatsDetail {
   headToHead: PlayerHeadToHeadStat[]
   byeHistory: PlayerByeHistoryItem[]
 }
+
+export interface HeadToHeadMatch {
+  tournamentId: string
+  tournamentName: string
+  updatedAt: string
+  round: number
+  board: number
+  result: string | null
+  leftColor: 'W' | 'B'
+  rightColor: 'W' | 'B'
+  leftPoints: number
+  rightPoints: number
+}
+
+export interface HeadToHeadTournament {
+  tournamentId: string
+  tournamentName: string
+  updatedAt: string
+  status: 'setup' | 'in_progress' | 'completed'
+  leftScore: number
+  rightScore: number
+  gamesPlayed: number
+  matches: HeadToHeadMatch[]
+}
+
+export interface HeadToHeadDetail {
+  leftPlayerId: string
+  leftPlayerName: string
+  rightPlayerId: string
+  rightPlayerName: string
+  gamesPlayed: number
+  leftScore: number
+  rightScore: number
+  leftWins: number
+  rightWins: number
+  draws: number
+  leftWhiteGames: number
+  leftBlackGames: number
+  rightWhiteGames: number
+  rightBlackGames: number
+  lastPlayedAt: string | null
+  tournaments: HeadToHeadTournament[]
+}

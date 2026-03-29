@@ -1,8 +1,9 @@
 import { useI18n } from '../useI18n'
+import type { AppView } from '../types/views'
 
 interface ViewTabsProps {
-  activeView: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics'
-  onSelectView: (view: 'dashboard' | 'live' | 'standings' | 'tournaments' | 'statistics') => void
+  activeView: AppView
+  onSelectView: (view: AppView) => void
 }
 
 export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
@@ -65,6 +66,17 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
           }`}
         >
           {t.navigation.statistics}
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelectView('headToHead')}
+          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+            activeView === 'headToHead'
+              ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
+              : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
+          }`}
+        >
+          {t.navigation.headToHead}
         </button>
       </div>
     </section>
