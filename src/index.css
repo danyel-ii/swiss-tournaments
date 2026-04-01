@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   color: #36064d;
   background: #f7f6e5;
@@ -41,7 +47,7 @@ body {
     radial-gradient(circle at top right, rgba(218, 72, 72, 0.1), transparent 24%),
     var(--theme-cream);
   color: var(--theme-text);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 button,
@@ -49,10 +55,21 @@ input,
 select,
 textarea {
   font: inherit;
+  max-width: 100%;
+}
+
+img,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 #root {
   min-height: 100vh;
+  min-width: 0;
   overflow-x: clip;
 }
 
@@ -79,14 +96,17 @@ textarea {
 
 .theme-heading {
   color: var(--theme-text);
+  overflow-wrap: anywhere;
 }
 
 .theme-copy {
   color: var(--theme-text-soft);
+  overflow-wrap: anywhere;
 }
 
 .theme-label {
   color: var(--theme-text-soft);
+  overflow-wrap: anywhere;
 }
 
 .theme-input {

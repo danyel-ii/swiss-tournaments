@@ -224,7 +224,7 @@ function TournamentWorkspace({
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         {isLiveView ? (
           <section className="theme-panel rounded-3xl px-5 py-4">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center justify-between gap-4">
               <div className="min-w-0">
                 <h1 className="theme-heading truncate font-display text-2xl font-bold tracking-[-0.03em] md:text-3xl">
                   {tournament.name}
@@ -235,7 +235,7 @@ function TournamentWorkspace({
                 type="button"
                 onClick={() => setLiveMenuOpen((current) => !current)}
                 aria-label={liveMenuOpen ? t.common.hide : t.common.open}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--theme-surface)] transition"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--theme-surface)] transition"
               >
                 <span className="flex flex-col gap-1.5">
                   <span className="block h-0.5 w-5 rounded-full bg-[var(--theme-text)]" />
@@ -267,17 +267,17 @@ function TournamentWorkspace({
                   }}
                 />
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="theme-copy rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm">
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                  <div className="theme-copy max-w-full rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm break-words">
                     {t.header.signedInAs(username)}
                   </div>
 
-                  <label className="theme-copy flex items-center gap-2 text-sm">
+                  <label className="theme-copy flex max-w-full flex-wrap items-center gap-2 text-sm">
                     <span className="font-display font-semibold">{t.header.languageLabel}</span>
                     <select
                       value={language}
                       onChange={(event) => setLanguage(event.target.value as typeof language)}
-                      className="theme-input font-data rounded-full border px-3 py-2 outline-none transition"
+                      className="theme-input font-data min-w-0 rounded-full border px-3 py-2 outline-none transition"
                     >
                       <option value="en">{t.common.english}</option>
                       <option value="de">{t.common.german}</option>
@@ -287,7 +287,7 @@ function TournamentWorkspace({
                   <button
                     type="button"
                     onClick={onLogout}
-                    className="font-display rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold transition"
+                    className="font-display max-w-full rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold transition break-words"
                   >
                     {t.header.logout}
                   </button>

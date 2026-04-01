@@ -86,18 +86,18 @@ export function StandingsTable({
           {podium.map((standing) => (
             <article
               key={standing.playerId}
-              className={`theme-muted-panel relative rounded-3xl p-4 ${
+              className={`theme-muted-panel relative min-w-0 rounded-3xl p-4 ${
                 standing.rank === 1 ? 'border-2 border-[var(--theme-red)]' : ''
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <AvatarBadge seed={standing.seed} />
-                  <div>
+                  <div className="min-w-0">
                     <p className="theme-copy font-data text-sm">
                       {t.standings.rank} {standing.rank}
                     </p>
-                    <h3 className="theme-heading font-display mt-1 text-xl font-semibold">
+                    <h3 className="theme-heading break-words font-display mt-1 text-xl font-semibold">
                       {standing.name}
                     </h3>
                   </div>

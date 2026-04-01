@@ -38,7 +38,7 @@ function StatCard({
   help,
 }: StatCardProps) {
   return (
-    <div className={`theme-panel rounded-3xl p-6 ${shellClassName}`}>
+    <div className={`theme-panel min-w-0 rounded-3xl p-6 ${shellClassName}`}>
       <div className="flex items-center gap-2">
         <span className={`rounded-2xl p-2 ${iconShellClassName}`}>
           {icon}
@@ -52,15 +52,15 @@ function StatCard({
           </HelpTooltip>
         ) : null}
       </div>
-      <div className="relative mt-5">
+      <div className="relative mt-5 min-w-0">
         {leader ? (
           <span className="absolute -top-4 left-1">
             <CrownIcon className="h-4 w-4" />
           </span>
         ) : null}
-      <p className="theme-heading font-display text-4xl font-bold tracking-[-0.04em] md:text-5xl">
-        {value}
-      </p>
+        <p className="theme-heading break-words font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl md:text-5xl">
+          {value}
+        </p>
       </div>
       <p className="theme-copy font-data mt-2 text-sm">{detail}</p>
     </div>

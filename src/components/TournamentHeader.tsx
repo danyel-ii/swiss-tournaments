@@ -23,7 +23,7 @@ export function TournamentHeader({ tournament, username, onLogout }: TournamentH
   return (
     <header className="theme-panel rounded-3xl px-6 py-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="theme-heading font-display text-3xl font-bold tracking-[-0.03em]">
             {t.header.title}
           </h1>
@@ -32,31 +32,31 @@ export function TournamentHeader({ tournament, username, onLogout }: TournamentH
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="theme-copy rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <div className="theme-copy max-w-full rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm break-words">
             {t.header.signedInAs(username)}
           </div>
 
-          <label className="theme-copy flex items-center gap-2 text-sm">
+          <label className="theme-copy flex max-w-full flex-wrap items-center gap-2 text-sm">
             <span className="font-display font-semibold">{t.header.languageLabel}</span>
             <select
               value={language}
               onChange={(event) => setLanguage(event.target.value as typeof language)}
-              className="theme-input font-data rounded-full border px-3 py-2 outline-none transition"
+              className="theme-input font-data min-w-0 rounded-full border px-3 py-2 outline-none transition"
             >
               <option value="en">{t.common.english}</option>
               <option value="de">{t.common.german}</option>
             </select>
           </label>
 
-          <div className="inline-flex self-start rounded-full bg-[var(--theme-plum-soft)] px-4 py-2 text-sm font-semibold text-[var(--theme-plum)]">
+          <div className="inline-flex max-w-full self-start rounded-full bg-[var(--theme-plum-soft)] px-4 py-2 text-sm font-semibold text-[var(--theme-plum)] break-words">
             {statusLabel}
           </div>
 
           <button
             type="button"
             onClick={onLogout}
-            className="font-display rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold transition"
+            className="font-display max-w-full rounded-full bg-[var(--theme-surface)] px-4 py-2 text-sm font-semibold transition break-words"
           >
             {t.header.logout}
           </button>

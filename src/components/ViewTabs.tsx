@@ -15,7 +15,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('dashboard')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'dashboard'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
@@ -26,7 +26,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('tournaments')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'tournaments'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
@@ -37,7 +37,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('live')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'live'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
@@ -48,7 +48,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('standings')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'standings'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
@@ -59,7 +59,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('statistics')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'statistics'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
@@ -70,7 +70,7 @@ export function ViewTabs({ activeView, onSelectView }: ViewTabsProps) {
         <button
           type="button"
           onClick={() => onSelectView('headToHead')}
-          className={`rounded-2xl px-4 py-3 font-display text-sm font-semibold transition ${
+          className={`w-full max-w-full rounded-2xl px-4 py-3 text-center font-display text-sm font-semibold transition sm:w-auto ${
             activeView === 'headToHead'
               ? 'bg-[var(--theme-plum)] text-[var(--theme-cream)]'
               : 'bg-[var(--theme-surface)] text-[var(--theme-text-soft)] hover:bg-[var(--theme-aqua-soft)] hover:text-[var(--theme-plum)]'
