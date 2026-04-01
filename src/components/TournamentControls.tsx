@@ -51,7 +51,7 @@ export function TournamentControls({
     <section className="theme-panel rounded-3xl p-6">
       <div className="flex flex-col gap-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="theme-label flex flex-col gap-2 text-sm font-medium">
+          <label className="theme-label min-w-0 flex flex-col gap-2 text-sm font-medium">
             <span className="font-display text-base font-semibold">{t.controls.tournamentName}</span>
             <input
               type="text"
@@ -64,19 +64,19 @@ export function TournamentControls({
                   event.currentTarget.blur()
                 }
               }}
-              className="theme-input font-data rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+              className="theme-input font-data w-full min-w-0 rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
 
-          <label className="theme-label flex flex-col gap-2 text-sm font-medium">
+          <label className="theme-label min-w-0 flex flex-col gap-2 text-sm font-medium">
             <span className="font-display text-base font-semibold">{t.controls.totalRounds}</span>
-            <div className="flex items-center gap-2">
+            <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 sm:grid-cols-[3.125rem_minmax(0,1fr)_3.125rem]">
               <button
                 type="button"
                 aria-label={t.controls.decreaseRounds}
                 disabled={!inSetup || tournament.totalRounds <= 1}
                 onClick={() => onRoundsChange(Math.max(1, tournament.totalRounds - 1))}
-                className="theme-button-aqua h-[3.125rem] w-[3.125rem] shrink-0 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed"
+                className="theme-button-aqua h-11 w-11 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed sm:h-[3.125rem] sm:w-[3.125rem]"
               >
                 -
               </button>
@@ -87,27 +87,27 @@ export function TournamentControls({
                 value={String(tournament.totalRounds)}
                 disabled={!inSetup}
                 onChange={(event) => handleRoundsInputChange(event.target.value)}
-                className="theme-input font-data min-w-0 flex-1 rounded-2xl border px-4 py-3 text-center outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+                className="theme-input font-data w-full min-w-0 rounded-2xl border px-3 py-3 text-center outline-none transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
               />
               <button
                 type="button"
                 aria-label={t.controls.increaseRounds}
                 disabled={!inSetup || tournament.totalRounds >= 20}
                 onClick={() => onRoundsChange(Math.min(20, tournament.totalRounds + 1))}
-                className="theme-button-aqua h-[3.125rem] w-[3.125rem] shrink-0 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed"
+                className="theme-button-aqua h-11 w-11 rounded-2xl text-xl font-semibold transition focus:outline-none disabled:cursor-not-allowed sm:h-[3.125rem] sm:w-[3.125rem]"
               >
                 +
               </button>
             </div>
           </label>
 
-          <label className="theme-label flex flex-col gap-2 text-sm font-medium">
+          <label className="theme-label min-w-0 flex flex-col gap-2 text-sm font-medium">
             <span className="font-display text-base font-semibold">{t.controls.pairingAlgorithm}</span>
             <select
               value={tournament.pairingAlgorithm}
               disabled={!inSetup}
               onChange={(event) => onPairingAlgorithmChange(event.target.value as PairingAlgorithm)}
-              className="theme-input font-data rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+              className="theme-input font-data w-full min-w-0 rounded-2xl border px-4 py-3 outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="greedy">{t.controls.pairingAlgorithmGreedy}</option>
               <option value="blossom">{t.controls.pairingAlgorithmBlossom}</option>

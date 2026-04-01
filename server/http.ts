@@ -1,10 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
+export function applySecurityHeaders(response: VercelResponse): void {
+  response.setHeader('X-Content-Type-Options', 'nosniff')
+  response.setHeader('X-Frame-Options', 'DENY')
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+}
+
 export function sendJson(
   response: VercelResponse,
   status: number,
   payload: unknown,
 ): void {
+  applySecurityHeaders(response)
   response.status(status).json(payload)
 }
 
@@ -80,5 +88,6 @@ export function requireTrustedOrigin(
 }
 
 export function setNoStore(response: VercelResponse): void {
+  applySecurityHeaders(response)
   response.setHeader('Cache-Control', 'no-store')
 }
