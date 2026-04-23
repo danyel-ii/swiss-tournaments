@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { clearSessionCookie, deleteSession, getSessionIdFromRequest } from '../../server/auth.js'
+import { withApiErrorHandling } from '../../server/errors.js'
 import { sendJson, sendMethodNotAllowed, setNoStore, requireTrustedOrigin } from '../../server/http.js'
 
-export default async function handler(
+async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
@@ -26,3 +27,5 @@ export default async function handler(
   clearSessionCookie(response)
   sendJson(response, 200, { ok: true })
 }
+
+export default withApiErrorHandling(handler)

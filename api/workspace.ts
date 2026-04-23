@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
 import { sql } from '../server/db.js'
+import { withApiErrorHandling } from '../server/errors.js'
 import {
   sendJson,
   sendMethodNotAllowed,
@@ -86,7 +87,7 @@ function normalizeDeletedCollection(collection: TournamentCollection): Tournamen
   }
 }
 
-export default async function handler(
+async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
@@ -189,3 +190,5 @@ export default async function handler(
 
   sendMethodNotAllowed(response, ['GET', 'PUT', 'DELETE'])
 }
+
+export default withApiErrorHandling(handler)

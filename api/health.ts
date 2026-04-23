@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { sql } from '../server/db.js'
+import { classifyApiError } from '../server/errors.js'
 import { sendJson, sendMethodNotAllowed, setNoStore } from '../server/http.js'
 
 interface HealthRow {
@@ -28,11 +29,14 @@ export default async function handler(
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    const classifiedError = classifyApiError(error)
+
     sendJson(response, 503, {
       status: 'error',
       database: 'error',
       timestamp: new Date().toISOString(),
-      error: 'Service unavailable',
+      error: classifiedError.message,
+      code: classifiedError.code,
     })
   }
 }

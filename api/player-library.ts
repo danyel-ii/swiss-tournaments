@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
+import { withApiErrorHandling } from '../server/errors.js'
 import { sendJson, sendMethodNotAllowed, setNoStore, requireTrustedOrigin } from '../server/http.js'
 import { hideLibraryPlayer, listLibraryPlayers } from '../server/library.js'
 
-export default async function handler(
+async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
@@ -46,3 +47,5 @@ export default async function handler(
     players: await listLibraryPlayers(username),
   })
 }
+
+export default withApiErrorHandling(handler)

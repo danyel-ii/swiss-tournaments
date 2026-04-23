@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
+import { withApiErrorHandling } from '../server/errors.js'
 import { sendJson, sendMethodNotAllowed, setNoStore } from '../server/http.js'
 import { getHeadToHeadDetail } from '../server/library.js'
 
-export default async function handler(
+async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
@@ -38,3 +39,5 @@ export default async function handler(
 
   sendJson(response, 200, detail)
 }
+
+export default withApiErrorHandling(handler)

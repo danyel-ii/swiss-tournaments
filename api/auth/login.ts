@@ -8,6 +8,7 @@ import {
   isValidCredentialInput,
   recordFailedLoginAttempt,
 } from '../../server/auth.js'
+import { withApiErrorHandling } from '../../server/errors.js'
 import {
   sendJson,
   sendMethodNotAllowed,
@@ -21,7 +22,7 @@ interface LoginBody {
   password?: string
 }
 
-export default async function handler(
+async function handler(
   request: VercelRequest,
   response: VercelResponse,
 ): Promise<void> {
@@ -73,3 +74,5 @@ export default async function handler(
   attachSessionCookie(response, session.sessionId, session.expiresAt)
   sendJson(response, 200, { user: { username: authenticatedUsername } })
 }
+
+export default withApiErrorHandling(handler)

@@ -240,6 +240,20 @@ describe('pairings', () => {
     expect(byeMatch?.whitePlayerId).not.toBe(players[4].id)
   })
 
+  it('generates a bye-only round when one player remains active', () => {
+    const players = createPlayers(['A'])
+    const pairings = generateSwissRoundPairings(players, [], 2, 'blossom')
+
+    expect(pairings).toEqual([
+      expect.objectContaining({
+        whitePlayerId: players[0].id,
+        blackPlayerId: null,
+        result: 'BYE',
+        isBye: true,
+      }),
+    ])
+  })
+
   it('generates round 2 pairings for a large field with late entrants without hanging', () => {
     const roundOnePlayers = createPlayers(
       Array.from({ length: 26 }, (_, index) => `Player ${index + 1}`),
@@ -293,7 +307,7 @@ describe('pairings', () => {
     expect(pairedPlayerIds.size).toBe(29)
   })
 
-  it('supports blossom matching as an alternative pairing engine', () => {
+  it('supports the balanced pairing mode as an alternative pairing engine', () => {
     const players = createPlayers(['A', 'B', 'C', 'D'])
     const matches: Match[] = [
       createMatch({
