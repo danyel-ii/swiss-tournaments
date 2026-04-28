@@ -42,6 +42,25 @@ async function createGameRequest(
   )
 }
 
+async function createManualGameRequest(params: {
+  tableId: string
+  whitePlayerId: string
+  blackPlayerId: string
+}): Promise<void> {
+  await apiRequest<GameResponse>(
+    `/api/ongoing-tables?tableId=${encodeURIComponent(params.tableId)}&action=game`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        whitePlayerId: params.whitePlayerId,
+        blackPlayerId: params.blackPlayerId,
+        pairingWeight: null,
+        pairingSnapshot: { manual: true },
+      }),
+    },
+  )
+}
+
 export function useOngoingTables(enabled: boolean) {
   const [tables, setTables] = useState<OngoingTableSummary[]>([])
   const [activeTable, setActiveTable] = useState<OngoingTableDetail | null>(null)
@@ -170,6 +189,17 @@ export function useOngoingTables(enabled: boolean) {
       return loadTable(tableId)
     })
 
+  const createManualGame = async (
+    tableId: string,
+    whitePlayerId: string,
+    blackPlayerId: string,
+  ) =>
+    mutate(async () => {
+      await createManualGameRequest({ tableId, whitePlayerId, blackPlayerId })
+      setPairingCandidates([])
+      return loadTable(tableId)
+    })
+
   const setGameResult = async (
     tableId: string,
     gameId: string,
@@ -229,6 +259,7 @@ export function useOngoingTables(enabled: boolean) {
     suggestPairing,
     createGame,
     createGames,
+    createManualGame,
     setGameResult,
     archiveTable,
     deleteTable,

@@ -23,10 +23,18 @@ export function OngoingTablesView({
   const { t } = useI18n()
   const [tableName, setTableName] = useState('')
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([])
+  const [manualWhitePlayerId, setManualWhitePlayerId] = useState('')
+  const [manualBlackPlayerId, setManualBlackPlayerId] = useState('')
   const activePlayers = tablesState.activeTable?.players.filter((player) => player.active) ?? []
   const pendingGames = tablesState.activeTable?.games.filter((game) => game.result === null) ?? []
   const recentGames = tablesState.activeTable?.games.filter((game) => game.result !== null).slice(0, 8) ?? []
   const canCreate = tableName.trim().length > 0 && selectedPlayerIds.length >= 2 && !tablesState.mutating
+  const canCreateManualGame =
+    Boolean(tablesState.activeTable) &&
+    manualWhitePlayerId.length > 0 &&
+    manualBlackPlayerId.length > 0 &&
+    manualWhitePlayerId !== manualBlackPlayerId &&
+    !tablesState.mutating
   const availableLibraryPlayers = useMemo(
     () =>
       libraryPlayers
@@ -60,6 +68,20 @@ export function OngoingTablesView({
 
     await tablesState.setGameResult(tablesState.activeTable.id, gameId, result)
     onRatingsChanged()
+  }
+
+  const createManualGame = async () => {
+    if (!tablesState.activeTable || !canCreateManualGame) {
+      return
+    }
+
+    await tablesState.createManualGame(
+      tablesState.activeTable.id,
+      manualWhitePlayerId,
+      manualBlackPlayerId,
+    )
+    setManualWhitePlayerId('')
+    setManualBlackPlayerId('')
   }
 
   return (
@@ -267,6 +289,60 @@ export function OngoingTablesView({
                 </div>
               </div>
             ) : null}
+
+            <div className="theme-muted-panel rounded-3xl px-4 py-4">
+              <h3 className="theme-heading font-display text-xl font-semibold">
+                {t.tables.manualPairing}
+              </h3>
+              <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <label className="theme-label text-sm font-medium">
+                  <span className="font-display">{t.tables.whitePlayer}</span>
+                  <select
+                    value={manualWhitePlayerId}
+                    onChange={(event) => setManualWhitePlayerId(event.target.value)}
+                    className="theme-input mt-2 w-full rounded-2xl border px-4 py-3 font-data outline-none"
+                  >
+                    <option value="">{t.headToHead.selectPlayer}</option>
+                    {activePlayers.map((player) => (
+                      <option key={player.playerId} value={player.playerId}>
+                        {player.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="theme-label text-sm font-medium">
+                  <span className="font-display">{t.tables.blackPlayer}</span>
+                  <select
+                    value={manualBlackPlayerId}
+                    onChange={(event) => setManualBlackPlayerId(event.target.value)}
+                    className="theme-input mt-2 w-full rounded-2xl border px-4 py-3 font-data outline-none"
+                  >
+                    <option value="">{t.headToHead.selectPlayer}</option>
+                    {activePlayers.map((player) => (
+                      <option
+                        key={player.playerId}
+                        value={player.playerId}
+                        disabled={player.playerId === manualWhitePlayerId}
+                      >
+                        {player.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  disabled={!canCreateManualGame}
+                  onClick={() => {
+                    void createManualGame()
+                  }}
+                  className="theme-button-aqua rounded-2xl px-5 py-3 font-display text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {t.tables.createGame}
+                </button>
+              </div>
+            </div>
 
             <div className="theme-muted-panel rounded-3xl px-4 py-4">
               <h3 className="theme-heading font-display text-xl font-semibold">{t.tables.standings}</h3>

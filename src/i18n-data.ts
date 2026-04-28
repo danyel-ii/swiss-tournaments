@@ -208,6 +208,9 @@ export type TranslationSet = {
     batchSuggestions: (count: number) => string
     createGame: string
     createAllGames: string
+    manualPairing: string
+    whitePlayer: string
+    blackPlayer: string
     pendingGames: string
     recentGames: string
     archiveTable: string
@@ -613,6 +616,9 @@ export const translations: Record<Language, TranslationSet> = {
       batchSuggestions: (count) => `${count} suggested games`,
       createGame: 'Create game',
       createAllGames: 'Create all games',
+      manualPairing: 'Manual pairing',
+      whitePlayer: 'White player',
+      blackPlayer: 'Black player',
       pendingGames: 'Pending games',
       recentGames: 'Recent games',
       archiveTable: 'Archive table',
@@ -950,6 +956,9 @@ export const translations: Record<Language, TranslationSet> = {
       batchSuggestions: (count) => `${count} vorgeschlagene Partien`,
       createGame: 'Partie erstellen',
       createAllGames: 'Alle Partien erstellen',
+      manualPairing: 'Manuelle Paarung',
+      whitePlayer: 'Weiss-Spieler',
+      blackPlayer: 'Schwarz-Spieler',
       pendingGames: 'Offene Partien',
       recentGames: 'Letzte Partien',
       archiveTable: 'Tabelle archivieren',
