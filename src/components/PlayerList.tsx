@@ -138,9 +138,15 @@ export function PlayerList({
                       <button
                         type="button"
                         onClick={() => onAddLibraryPlayer(libraryPlayer)}
-                        className="min-w-0 flex-1 truncate text-left font-display text-sm font-semibold transition hover:text-[var(--theme-plum)]"
+                        className="min-w-0 flex-1 text-left transition hover:text-[var(--theme-plum)]"
                       >
-                        {libraryPlayer.name}
+                        <span className="block truncate font-display text-sm font-semibold">
+                          {libraryPlayer.name}
+                        </span>
+                        <span className="theme-copy block truncate font-data text-xs">
+                          {t.tables.internalElo}: {libraryPlayer.internalRating}
+                          {libraryPlayer.ratingProvisional ? ` (${t.tables.provisional})` : ''}
+                        </span>
                       </button>
 
                       <button

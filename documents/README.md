@@ -11,6 +11,8 @@ This app is used to run Swiss-system chess tournaments with:
 - live result entry
 - standings and tie-breaks
 - reusable player library
+- shared internal Elo ratings for library players
+- ongoing rated tables for open-ended play
 - cross-tournament player statistics
 - markdown report download
 
@@ -38,7 +40,9 @@ The app is organized into these tabs:
 - `Tournaments`: list of saved tournaments, create/open/delete tournaments
 - `Live View`: simplified round-control screen for active play
 - `Standings`: standings-focused view
+- `Tables`: ongoing open-ended rated tables
 - `Statistics`: cross-tournament player statistics
+- `Head-to-Head`: direct player comparison
 
 ## Typical Tournament Workflow
 
@@ -183,12 +187,50 @@ Deleting a player from the library:
 - does not erase past tournament history
 - does not erase statistics by itself
 
+Each library player also has an internal Elo rating:
+
+- new players start at `1200`
+- players are provisional for their first 20 rated games
+- rated tournament and ongoing-table games share the same internal rating
+- `BYE`, `0-0`, unfinished games, and games without two resolved library players do not change ratings
+
+The rating belongs to the library player identity, not to a tournament-local player entry.
+
+## Ongoing Tables
+
+The `Tables` tab supports open-ended rated play outside the Swiss tournament workflow.
+
+Use it to:
+
+- create a table from selected library players
+- see table-only standings and W/D/L totals
+- request probabilistic pairing suggestions
+- create pending games
+- enter results for pending or completed games
+- archive or delete a table
+
+Pairing suggestions are weighted by:
+
+- internal Elo similarity
+- fewer previous games between the same two table players
+- avoidance of very recent repeats
+- activity balancing between players with different table game counts
+
+Every possible active pairing keeps a non-zero chance. This means the suggestions are guided, not deterministic.
+
+Table result behavior:
+
+- `1-0`, `0-1`, and `0.5-0.5` update both table standings and internal Elo
+- `0-0` records a completed table game worth zero table points and does not update internal Elo
+- pending games are included as pairing history so repeated pending suggestions are discouraged
+
 ## Statistics
 
 The `Statistics` tab shows cross-tournament player information derived from the saved database records.
 
 Available statistics include:
 
+- internal Elo rating and rating game count
 - tournaments played
 - games played
 - total score
@@ -214,6 +256,8 @@ Available statistics include:
 Deleting a player from `Statistics`:
 
 - explicitly removes that player’s stored statistics record for the account
+- removes rating/table data involving that player
+- recalculates remaining ratings from the remaining canonical rated games
 
 ## Tournament Deletion and Data Deletion
 

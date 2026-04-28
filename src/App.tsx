@@ -4,6 +4,7 @@ import { HeadToHeadView } from './components/HeadToHeadView'
 import { InstallPrompt } from './components/InstallPrompt'
 import { LiveView } from './components/LiveView'
 import { LoginView } from './components/LoginView'
+import { OngoingTablesView } from './components/OngoingTablesView'
 import { StandingsFocusView } from './components/StandingsFocusView'
 import { StatisticsView } from './components/StatisticsView'
 import { TournamentDirectoryView } from './components/TournamentDirectoryView'
@@ -12,6 +13,7 @@ import { ViewTabs } from './components/ViewTabs'
 import { useAuth } from './hooks/useAuth'
 import { useHeadToHead } from './hooks/useHeadToHead'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
+import { useOngoingTables } from './hooks/useOngoingTables'
 import { usePlayerLibrary } from './hooks/usePlayerLibrary'
 import { usePlayerStats } from './hooks/usePlayerStats'
 import { useI18n } from './useI18n'
@@ -61,6 +63,8 @@ interface TournamentWorkspaceProps {
   headToHeadLoading: boolean
   headToHeadError: string | null
   onHeadToHeadChange: (leftPlayerId: string | null, rightPlayerId: string | null) => void
+  ongoingTables: ReturnType<typeof useOngoingTables>
+  onRatingsChanged: () => void
   activeView: AppView
   setActiveView: (view: AppView) => void
 }
@@ -94,6 +98,8 @@ function TournamentWorkspace({
   headToHeadLoading,
   headToHeadError,
   onHeadToHeadChange,
+  ongoingTables,
+  onRatingsChanged,
   activeView,
   setActiveView,
 }: TournamentWorkspaceProps) {
@@ -361,6 +367,12 @@ function TournamentWorkspace({
             error={headToHeadError}
             onChangePlayers={onHeadToHeadChange}
           />
+        ) : activeView === 'ongoingTables' ? (
+          <OngoingTablesView
+            libraryPlayers={libraryPlayers}
+            tablesState={ongoingTables}
+            onRatingsChanged={onRatingsChanged}
+          />
         ) : (
           <DashboardView
             tournament={tournament}
@@ -461,6 +473,7 @@ function App() {
   const [selectedStatsPlayerId, setSelectedStatsPlayerId] = useState<string | null>(null)
   const [headToHeadLeftPlayerId, setHeadToHeadLeftPlayerId] = useState<string | null>(null)
   const [headToHeadRightPlayerId, setHeadToHeadRightPlayerId] = useState<string | null>(null)
+  const [ratingsRefreshKey, setRatingsRefreshKey] = useState(0)
   const workspaceRefreshKey = useMemo(
     () =>
       tournaments
@@ -468,8 +481,10 @@ function App() {
         .join('|'),
     [tournaments],
   )
-  const playerLibrary = usePlayerLibrary(auth.user !== null, workspaceRefreshKey)
-  const playerStats = usePlayerStats(auth.user !== null, workspaceRefreshKey, selectedStatsPlayerId)
+  const sharedRefreshKey = `${workspaceRefreshKey}|ratings:${ratingsRefreshKey}`
+  const playerLibrary = usePlayerLibrary(auth.user !== null, sharedRefreshKey)
+  const playerStats = usePlayerStats(auth.user !== null, sharedRefreshKey, selectedStatsPlayerId)
+  const ongoingTables = useOngoingTables(auth.user !== null)
   const headToHead = useHeadToHead(
     auth.user !== null,
     workspaceRefreshKey,
@@ -555,6 +570,8 @@ function App() {
           setHeadToHeadLeftPlayerId(leftPlayerId)
           setHeadToHeadRightPlayerId(rightPlayerId)
         }}
+        ongoingTables={ongoingTables}
+        onRatingsChanged={() => setRatingsRefreshKey((current) => current + 1)}
         activeView={activeView}
         setActiveView={setActiveView}
       />

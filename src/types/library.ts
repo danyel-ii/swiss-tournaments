@@ -3,6 +3,9 @@ export interface LibraryPlayer {
   name: string
   tournamentCount: number
   createdAt: string
+  internalRating: number
+  ratingGames: number
+  ratingProvisional: boolean
 }
 
 export interface PlayerStatsSummary {
@@ -35,6 +38,9 @@ export interface PlayerStatsSummary {
   bestBuchholz: number
   latestBuchholz: number | null
   lastPlayedAt: string | null
+  internalRating: number
+  ratingGames: number
+  ratingProvisional: boolean
 }
 
 export interface PlayerTournamentOpponentStat {

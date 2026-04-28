@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "backfill:ratings": "node scripts/backfill-ratings.mjs",
     "hash-password": "node scripts/hash-password.mjs",
     "verify:runtime": "node scripts/verify-runtime.mjs"
   },

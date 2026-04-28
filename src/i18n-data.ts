@@ -33,6 +33,7 @@ export type TranslationSet = {
     tournaments: string
     live: string
     standings: string
+    tables: string
     statistics: string
     headToHead: string
   }
@@ -192,6 +193,28 @@ export type TranslationSet = {
     lastMeeting: string
     wins: (name: string) => string
   }
+  tables: {
+    title: string
+    subtitle: string
+    createTable: string
+    tableName: string
+    selectPlayers: string
+    internalElo: string
+    rating: string
+    provisional: string
+    suggestPairing: string
+    suggestBatch: string
+    createGame: string
+    pendingGames: string
+    recentGames: string
+    archiveTable: string
+    deleteTable: string
+    noTableSelected: string
+    noPairingAvailable: string
+    resultSaved: string
+    standings: string
+    activeTables: string
+  }
   standings: {
     title: string
     subtitle: string
@@ -325,6 +348,7 @@ export const translations: Record<Language, TranslationSet> = {
       tournaments: 'Tournaments',
       live: 'Live View',
       standings: 'Standings',
+      tables: 'Tables',
       statistics: 'Statistics',
       headToHead: 'Head-to-Head',
     },
@@ -571,6 +595,28 @@ export const translations: Record<Language, TranslationSet> = {
       lastMeeting: 'Last meeting',
       wins: (name) => `${name} wins`,
     },
+    tables: {
+      title: 'Ongoing tables',
+      subtitle: 'Open-ended rated games for selected library players.',
+      createTable: 'Create table',
+      tableName: 'Table name',
+      selectPlayers: 'Select players',
+      internalElo: 'Internal Elo',
+      rating: 'Rating',
+      provisional: 'Provisional',
+      suggestPairing: 'Suggest pairing',
+      suggestBatch: 'Suggest batch',
+      createGame: 'Create game',
+      pendingGames: 'Pending games',
+      recentGames: 'Recent games',
+      archiveTable: 'Archive table',
+      deleteTable: 'Delete table',
+      noTableSelected: 'No table selected',
+      noPairingAvailable: 'No pairing available',
+      resultSaved: 'Result saved',
+      standings: 'Standings',
+      activeTables: 'Active tables',
+    },
     auth: {
       eyebrow: 'Private Access',
       title: 'Sign in to tournament control',
@@ -635,6 +681,7 @@ export const translations: Record<Language, TranslationSet> = {
       tournaments: 'Turniere',
       live: 'Live Ansicht',
       standings: 'Tabelle',
+      tables: 'Tabellen',
       statistics: 'Statistik',
       headToHead: 'Direkter Vergleich',
     },
@@ -881,6 +928,28 @@ export const translations: Record<Language, TranslationSet> = {
       tournamentMeetings: 'Begegnungen nach Turnier',
       lastMeeting: 'Letzte Begegnung',
       wins: (name) => `${name} Siege`,
+    },
+    tables: {
+      title: 'Laufende Tabellen',
+      subtitle: 'Offene gewertete Partien fuer ausgewaehlte Bibliotheksspieler.',
+      createTable: 'Tabelle erstellen',
+      tableName: 'Tabellenname',
+      selectPlayers: 'Spieler auswaehlen',
+      internalElo: 'Interne Elo',
+      rating: 'Rating',
+      provisional: 'Vorlaeufig',
+      suggestPairing: 'Paarung vorschlagen',
+      suggestBatch: 'Batch vorschlagen',
+      createGame: 'Partie erstellen',
+      pendingGames: 'Offene Partien',
+      recentGames: 'Letzte Partien',
+      archiveTable: 'Tabelle archivieren',
+      deleteTable: 'Tabelle loeschen',
+      noTableSelected: 'Keine Tabelle ausgewaehlt',
+      noPairingAvailable: 'Keine Paarung verfuegbar',
+      resultSaved: 'Ergebnis gespeichert',
+      standings: 'Tabelle',
+      activeTables: 'Aktive Tabellen',
     },
     auth: {
       eyebrow: 'Privater Zugang',

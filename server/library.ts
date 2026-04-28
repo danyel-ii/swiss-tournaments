@@ -21,11 +21,20 @@ import type {
 } from '../src/types/library.js'
 import type { Match, Player, TournamentStatus } from '../src/types/tournament.js'
 import type { TournamentCollection } from '../src/types/workspace.js'
+import { DEFAULT_INTERNAL_RATING } from '../src/core/rating.js'
+import {
+  ensureRatingSchema,
+  recalculateUserRatings,
+  syncTournamentRatingSourcesFromProjection,
+} from './ratings.js'
 
 interface LibraryRow {
   id: string
   display_name: string
   created_at: string
+  internal_rating?: number
+  rating_games?: number
+  rating_provisional?: boolean
 }
 
 interface TournamentPlayerProjectionRow {
@@ -268,29 +277,42 @@ export async function syncWorkspaceProjection(
       `
     }
   }
+
+  await syncTournamentRatingSourcesFromProjection(username)
+  await recalculateUserRatings(username)
 }
 
 export async function listLibraryPlayers(username: AllowedUsername): Promise<LibraryPlayer[]> {
   await ensureLibrarySchema()
+  await ensureRatingSchema()
 
   const rows = (await sql`
     select
       pl.id,
       pl.display_name as name,
       pl.created_at,
-      count(distinct tpe.tournament_id)::int as tournament_count
+      count(distinct tpe.tournament_id)::int as tournament_count,
+      coalesce(pr.rating, 1200)::int as internal_rating,
+      coalesce(pr.games, 0)::int as rating_games,
+      coalesce(pr.provisional, true) as rating_provisional
     from player_library pl
     left join tournament_player_entries tpe
       on tpe.library_player_id = pl.id
+    left join player_ratings pr
+      on pr.username = pl.username
+      and pr.library_player_id = pl.id
     where pl.username = ${username}
       and pl.hidden = false
-    group by pl.id, pl.display_name, pl.created_at
+    group by pl.id, pl.display_name, pl.created_at, pr.rating, pr.games, pr.provisional
     order by pl.display_name asc
   `) as Array<{
     id: string
     name: string
     created_at: string
     tournament_count: number
+    internal_rating: number
+    rating_games: number
+    rating_provisional: boolean
   }>
 
   return rows.map((row) => ({
@@ -298,6 +320,9 @@ export async function listLibraryPlayers(username: AllowedUsername): Promise<Lib
     name: row.name,
     tournamentCount: row.tournament_count,
     createdAt: row.created_at,
+    internalRating: row.internal_rating,
+    ratingGames: row.rating_games,
+    ratingProvisional: row.rating_provisional,
   }))
 }
 
@@ -350,6 +375,9 @@ function createEmptySummary(row: LibraryRow): PlayerStatsSummary {
     bestBuchholz: 0,
     latestBuchholz: null,
     lastPlayedAt: null,
+    internalRating: row.internal_rating ?? DEFAULT_INTERNAL_RATING,
+    ratingGames: row.rating_games ?? 0,
+    ratingProvisional: row.rating_provisional ?? true,
   }
 }
 
@@ -829,13 +857,23 @@ async function loadStatsProjection(username: AllowedUsername): Promise<{
   matchRows: MatchProjectionRow[]
 }> {
   await ensureLibrarySchema()
+  await ensureRatingSchema()
 
   const [libraryRows, tournamentRows, playerRows, matchRows] = await Promise.all([
     sql`
-      select id, display_name, created_at
-      from player_library
-      where username = ${username}
-      order by display_name asc
+      select
+        pl.id,
+        pl.display_name,
+        pl.created_at,
+        coalesce(pr.rating, 1200)::int as internal_rating,
+        coalesce(pr.games, 0)::int as rating_games,
+        coalesce(pr.provisional, true) as rating_provisional
+      from player_library pl
+      left join player_ratings pr
+        on pr.username = pl.username
+        and pr.library_player_id = pl.id
+      where pl.username = ${username}
+      order by pl.display_name asc
     `,
     sql`
       select tournament_id, name, status, total_rounds, current_round, created_at, updated_at
@@ -1088,6 +1126,8 @@ export async function deletePlayerStats(
   username: AllowedUsername,
   playerId: string,
 ): Promise<boolean> {
+  await ensureRatingSchema()
+
   const existing = (await sql`
     select id
     from player_library
@@ -1099,6 +1139,45 @@ export async function deletePlayerStats(
   if (!existing[0]) {
     return false
   }
+
+  await sql`
+    delete from ongoing_table_games
+    where username = ${username}
+      and (
+        white_library_player_id = ${playerId}
+        or black_library_player_id = ${playerId}
+      )
+  `
+
+  await sql`
+    delete from ongoing_table_players
+    where username = ${username}
+      and library_player_id = ${playerId}
+  `
+
+  await sql`
+    delete from rated_games
+    where username = ${username}
+      and (
+        white_library_player_id = ${playerId}
+        or black_library_player_id = ${playerId}
+      )
+  `
+
+  await sql`
+    delete from rating_events
+    where username = ${username}
+      and (
+        white_library_player_id = ${playerId}
+        or black_library_player_id = ${playerId}
+      )
+  `
+
+  await sql`
+    delete from player_ratings
+    where username = ${username}
+      and library_player_id = ${playerId}
+  `
 
   await sql`
     update tournament_match_entries
@@ -1129,6 +1208,8 @@ export async function deletePlayerStats(
     where username = ${username}
       and id = ${playerId}
   `
+
+  await recalculateUserRatings(username)
 
   return true
 }

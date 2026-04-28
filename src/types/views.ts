@@ -3,5 +3,6 @@ export type AppView =
   | 'live'
   | 'standings'
   | 'tournaments'
+  | 'ongoingTables'
   | 'statistics'
   | 'headToHead'

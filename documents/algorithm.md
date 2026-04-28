@@ -12,6 +12,8 @@ The core algorithmic areas are:
 - color assignment heuristics
 - bye selection
 - standings and tie-break computation
+- internal Elo rating replay
+- ongoing table probabilistic pairing
 - tournament progression rules that affect pairing inputs
 
 The pairing engine does not operate in isolation. It depends on ranking and eligibility rules, so this document covers the full algorithmic pipeline rather than only the matching step.
@@ -23,7 +25,11 @@ Main implementation files:
 - `src/core/swissPairing.ts`
 - `src/core/ranking.ts`
 - `src/core/tournament.ts`
+- `src/core/rating.ts`
+- `src/core/ongoingPairing.ts`
 - `src/core/ranking.test.ts`
+- `src/core/rating.test.ts`
+- `src/core/ongoingPairing.test.ts`
 
 Supporting type definitions:
 
@@ -48,6 +54,8 @@ Other important non-configurable algorithms in the system:
 - bye assignment
 - color balancing and streak avoidance
 - tournament rewind logic for corrected historic results
+- Elo expected score and K-factor updates
+- ongoing table pair weighting and weighted random selection
 
 ## End-to-End Pairing Pipeline
 
@@ -622,7 +630,113 @@ The test suite in `src/core/ranking.test.ts` validates several critical guarante
 
 This matters because it tells us which algorithmic properties are intentional and already protected by tests.
 
-## 13. Design Tradeoffs
+## 13. Internal Elo Rating Algorithm
+
+Implemented in:
+
+- `src/core/rating.ts`
+- `server/ratings.ts`
+
+### Pure rating formula
+
+The app uses a standard Elo-style expected score:
+
+```ts
+expectedWhite = 1 / (1 + Math.pow(10, (blackRating - whiteRating) / 400))
+expectedBlack = 1 - expectedWhite
+```
+
+K factors:
+
+- provisional players, fewer than 20 rated games: `40`
+- established players: `32`
+
+New players default to:
+
+- rating `1200`
+- `0` rated games
+- provisional status
+
+Different K factors mean a game can be non-zero-sum when a provisional player faces an established player. That is intentional for an internal rating system because fast provisional movement is more useful than strict pool conservation.
+
+### Rated and unrated results
+
+Rated:
+
+- `1-0`
+- `0-1`
+- `0.5-0.5`
+
+Unrated:
+
+- `BYE`
+- `0-0`
+- unfinished games
+- matches without two real resolved library players
+
+### Replay model
+
+The current rating in `player_ratings` is not updated directly by result-entry UI code.
+
+Instead:
+
+1. valid tournament and ongoing-table games are stored in `rated_games`
+2. `rating_events` is rebuilt by replaying all canonical games in stable order
+3. `player_ratings` is replaced with the final replay state
+
+Replay ordering is chronological first, then source-order/source-id tie-breaks. This makes repeated workspace saves, result edits, tournament deletion, and tournament rewinds idempotent.
+
+## 14. Ongoing Table Pairing Algorithm
+
+Implemented in:
+
+- `src/core/ongoingPairing.ts`
+
+This algorithm is separate from `src/core/swissPairing.ts`; it does not affect Swiss tournament pairings.
+
+### Candidate generation
+
+For every active player pair, the algorithm creates one candidate. There are no hard exclusions between active players. Every possible pair receives a non-zero probability.
+
+The weight structure is:
+
+```ts
+weight = epsilon
+  + eloSimilarity
+  * roundRobinPressure
+  * recencyPressure
+  * activityBalance
+```
+
+Where:
+
+- `eloSimilarity` favors smaller rating gaps
+- `roundRobinPressure` favors pairs with fewer prior table games
+- `recencyPressure` discourages very recent repeats
+- `activityBalance` gives a small boost to pairs whose table game counts differ
+- `epsilon` guarantees non-zero probability
+
+### Color assignment
+
+White/black orientation is chosen after pair weighting:
+
+- prefer giving White to the player with more Black games
+- if still tied, use deterministic name/id ordering
+
+This keeps pair probability focused on opponent choice while still improving color fairness.
+
+### Batch mode
+
+Batch suggestions repeatedly:
+
+1. build weighted candidates
+2. select one weighted pair
+3. remove both selected players
+4. recompute for the remaining pool
+
+If one player remains, that player sits out. No bye score is awarded.
+
+## 15. Design Tradeoffs
 
 The algorithm design makes several pragmatic tradeoffs.
 

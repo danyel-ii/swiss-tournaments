@@ -68,6 +68,8 @@ export function StatisticsView({
   const summaryCards = selectedSummary
     ? [
         [t.statistics.score, formatScore(selectedSummary.totalScore)],
+        [t.tables.internalElo, `${selectedSummary.internalRating}${selectedSummary.ratingProvisional ? ` (${t.tables.provisional})` : ''}`],
+        [t.tables.rating, String(selectedSummary.ratingGames)],
         [t.statistics.scorePercentage, formatPercent(selectedSummary.scorePercentage)],
         [t.statistics.gamesPlayed, String(selectedSummary.gamesPlayed)],
         [t.statistics.tournamentsPlayed, String(selectedSummary.tournamentsPlayed)],
@@ -147,6 +149,10 @@ export function StatisticsView({
                       </p>
                       <p className="theme-copy mt-1 break-words font-data text-sm">
                         {t.statistics.tournamentsPlayed}: {player.tournamentsPlayed} · {t.statistics.gamesPlayed}: {player.gamesPlayed}
+                      </p>
+                      <p className="theme-copy mt-1 break-words font-data text-sm">
+                        {t.tables.internalElo}: {player.internalRating}
+                        {player.ratingProvisional ? ` (${t.tables.provisional})` : ''}
                       </p>
                       <p className="theme-copy mt-1 break-words font-data text-sm">
                         {t.statistics.averageBuchholz}: {formatScore(player.averageBuchholz)} · {t.statistics.whiteBlack}: {player.whiteGames}/{player.blackGames}

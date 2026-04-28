@@ -83,6 +83,7 @@ At runtime, the app has three major layers:
 - `usePlayerLibrary()` for reusable players
 - `usePlayerStats()` for cross-tournament statistics
 - `useHeadToHead()` for pairwise player history
+- `useOngoingTables()` for open-ended rated table play
 - `useInstallPrompt()` for PWA installation UX
 
 This is a pragmatic React architecture:
@@ -103,6 +104,8 @@ The backend is split into small route handlers under `api/`:
 - `api/player-library.ts`
 - `api/player-stats.ts`
 - `api/head-to-head.ts`
+- `api/ratings.ts`
+- `api/ongoing-tables.ts`
 - `api/health.ts`
 
 Each route is intentionally narrow. There is no monolithic backend service layer. That fits the deployment target and keeps the serverless functions independently understandable.
@@ -289,6 +292,8 @@ Whenever `PUT /api/workspace` succeeds:
 2. `syncWorkspaceProjection(username, payload)` runs
 3. per-tournament projection rows are deleted and rebuilt
 4. reusable library player identities are ensured/upserted
+5. canonical tournament rating sources are synced into `rated_games`
+6. internal ratings are recalculated from all canonical rated games
 
 This makes workspace save the synchronization boundary for the entire system.
 
@@ -297,6 +302,8 @@ Consequences:
 - analytics always derive from persisted workspace state
 - statistics are eventually consistent with the latest successful save
 - the frontend does not need a second write path to maintain analytics tables
+- re-saving the same tournament state cannot double-count Elo changes
+- editing old results, rewinding rounds, and deleting tournaments remove obsolete rating sources before replay
 
 ### Library semantics
 
@@ -308,6 +315,7 @@ Key behavior:
 - a tournament player may link to an existing `libraryPlayerId`
 - otherwise the server can create/reuse a library entry by normalized name
 - deletion from the library is soft-hide behavior, not history erasure
+- each library player can have an internal Elo rating in `player_ratings`
 
 That is a smart choice because it preserves historical linkage while letting organizers clean up active lists.
 
@@ -329,7 +337,50 @@ That keeps editing responsibilities separated:
 - workspace routes mutate tournament state
 - stats/library routes expose curated historical views
 
-## E. Pairing and standings flow
+## E. Rating and ongoing table flow
+
+Internal ratings are deliberately not stored in tournament state. They belong to persistent library players:
+
+- `player_library.id`
+- `player_ratings.library_player_id`
+
+The canonical rating source is `rated_games`, not `player_ratings`. This matters because tournament state is saved as a whole snapshot and can be saved repeatedly, edited, rewound, or partially deleted.
+
+Rating write flow:
+
+1. Tournament workspace saves rebuild projection tables.
+2. `syncTournamentRatingSourcesFromProjection()` upserts only rated tournament games into `rated_games`.
+3. Obsolete tournament-sourced `rated_games` rows are deleted.
+4. Ongoing table result writes call `upsertOngoingTableRatingSource()` for one table game.
+5. `recalculateUserRatings()` deletes and rebuilds `rating_events` and `player_ratings` by replaying all canonical games in stable chronological/source order.
+
+Rated results are:
+
+- `1-0`
+- `0-1`
+- `0.5-0.5`
+
+Unrated results/sources are:
+
+- `BYE`
+- `0-0`
+- unfinished games
+- games missing a black player
+- games where either side cannot be resolved to a library player
+
+This replay model is slower than a single-row delta update, but it is much safer for this app because it makes rating state idempotent and repairable.
+
+Ongoing tables live beside tournaments rather than inside them:
+
+- `ongoing_tables`
+- `ongoing_table_players`
+- `ongoing_table_games`
+
+The `Tables` UI uses `useOngoingTables()` and `api/ongoing-tables.ts` to create tables, suggest pairings, create pending games, and enter results. Table standings are derived from `ongoing_table_games`; global Elo is still derived only through `rated_games` replay.
+
+Deleting an ongoing table removes its ongoing-table rating sources and recalculates ratings. Archiving a table preserves games and ratings.
+
+## F. Pairing and standings flow
 
 The domain-heavy part of the app lives in `src/core/`.
 
@@ -393,6 +444,18 @@ Why this split is strong:
 - blossom can improve pairing quality on larger fields
 - fallback behavior reduces operational risk if perfect matching is not available
 
+The ongoing table pairing logic is intentionally separate in `src/core/ongoingPairing.ts`. It does not change Swiss pairing semantics.
+
+Ongoing table pairings:
+
+- generate every possible active-player pair
+- assign every pair a non-zero weight
+- favor closer Elo matches
+- favor pairs with fewer prior table games against each other
+- discourage recent repeats without forbidding them
+- choose white/black after pair weighting to improve color balance
+- support batch suggestions by repeatedly selecting a weighted pair and removing both players from the candidate pool
+
 ## Database Model
 
 The schema in `db/schema.sql` is small but purposeful.
@@ -416,6 +479,18 @@ The schema in `db/schema.sql` is small but purposeful.
   - player snapshots inside each tournament
 - `tournament_match_entries`
   - match snapshots inside each tournament
+- `player_ratings`
+  - current replayed internal Elo per library player
+- `rated_games`
+  - canonical rated game sources from tournaments and ongoing tables
+- `rating_events`
+  - deterministic replay history and per-game rating deltas
+- `ongoing_tables`
+  - ongoing table metadata/settings
+- `ongoing_table_players`
+  - table membership and active/inactive state
+- `ongoing_table_games`
+  - pending and completed table games
 
 This structure indicates the app values:
 
@@ -517,6 +592,8 @@ The `useInstallPrompt()` hook and mobile-specific `Live View` also confirm that 
 Current verification layers include:
 
 - domain tests in `src/core/ranking.test.ts`
+- rating math tests in `src/core/rating.test.ts`
+- ongoing pairing probability/color/batch tests in `src/core/ongoingPairing.test.ts`
 - export and utility tests
 - runtime smoke verification in `scripts/verify-runtime.mjs`
 
@@ -609,6 +686,7 @@ What it costs:
 - No true multi-user synchronization model
 - Workspace save rewrites can become a contention point if collaboration is added
 - Projection rebuild-on-save may become more expensive as history grows
+- Rating replay is intentionally full-user replay and could need batching or materialized summaries with much larger datasets
 - Auth/user management is static and environment-bound
 - The backend trusts normalized client snapshots more than a command-validated domain API would
 
