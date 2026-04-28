@@ -205,7 +205,9 @@ export type TranslationSet = {
     provisional: string
     suggestPairing: string
     suggestBatch: string
+    batchSuggestions: (count: number) => string
     createGame: string
+    createAllGames: string
     pendingGames: string
     recentGames: string
     archiveTable: string
@@ -608,7 +610,9 @@ export const translations: Record<Language, TranslationSet> = {
       provisional: 'Provisional',
       suggestPairing: 'Suggest pairing',
       suggestBatch: 'Suggest batch',
+      batchSuggestions: (count) => `${count} suggested games`,
       createGame: 'Create game',
+      createAllGames: 'Create all games',
       pendingGames: 'Pending games',
       recentGames: 'Recent games',
       archiveTable: 'Archive table',
@@ -943,7 +947,9 @@ export const translations: Record<Language, TranslationSet> = {
       provisional: 'Vorlaeufig',
       suggestPairing: 'Paarung vorschlagen',
       suggestBatch: 'Batch vorschlagen',
+      batchSuggestions: (count) => `${count} vorgeschlagene Partien`,
       createGame: 'Partie erstellen',
+      createAllGames: 'Alle Partien erstellen',
       pendingGames: 'Offene Partien',
       recentGames: 'Letzte Partien',
       archiveTable: 'Tabelle archivieren',

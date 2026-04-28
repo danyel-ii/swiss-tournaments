@@ -218,30 +218,53 @@ export function OngoingTablesView({
             </div>
 
             {tablesState.pairingCandidates.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {tablesState.pairingCandidates.map((candidate) => (
-                  <article
-                    key={`${candidate.whitePlayerId}:${candidate.blackPlayerId}`}
-                    className="theme-muted-panel rounded-3xl px-4 py-4"
-                  >
-                    <p className="theme-heading font-display text-lg font-semibold">
-                      {candidate.whiteName} - {candidate.blackName}
-                    </p>
-                    <p className="theme-copy mt-1 font-data text-sm">
-                      {(candidate.probability * 100).toFixed(1)}% · Δ {candidate.eloDifference} · H2H {candidate.gamesBetween}
+              <div className="space-y-3">
+                {tablesState.pairingCandidates.length > 1 ? (
+                  <div className="theme-muted-panel flex flex-col gap-3 rounded-3xl px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="theme-copy font-data text-sm">
+                      {t.tables.batchSuggestions(tablesState.pairingCandidates.length)}
                     </p>
                     <button
                       type="button"
                       disabled={tablesState.mutating}
                       onClick={() => {
-                        void tablesState.createGame(tablesState.activeTable?.id ?? '', candidate)
+                        void tablesState.createGames(
+                          tablesState.activeTable?.id ?? '',
+                          tablesState.pairingCandidates,
+                        )
                       }}
-                      className="theme-button-aqua mt-3 rounded-full px-4 py-2 font-display text-sm font-semibold"
+                      className="theme-button-aqua rounded-full px-4 py-2 font-display text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {t.tables.createGame}
+                      {t.tables.createAllGames}
                     </button>
-                  </article>
-                ))}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  {tablesState.pairingCandidates.map((candidate) => (
+                    <article
+                      key={`${candidate.whitePlayerId}:${candidate.blackPlayerId}`}
+                      className="theme-muted-panel rounded-3xl px-4 py-4"
+                    >
+                      <p className="theme-heading font-display text-lg font-semibold">
+                        {candidate.whiteName} - {candidate.blackName}
+                      </p>
+                      <p className="theme-copy mt-1 font-data text-sm">
+                        {(candidate.probability * 100).toFixed(1)}% · Δ {candidate.eloDifference} · H2H {candidate.gamesBetween}
+                      </p>
+                      <button
+                        type="button"
+                        disabled={tablesState.mutating}
+                        onClick={() => {
+                          void tablesState.createGame(tablesState.activeTable?.id ?? '', candidate)
+                        }}
+                        className="theme-button-aqua mt-3 rounded-full px-4 py-2 font-display text-sm font-semibold"
+                      >
+                        {t.tables.createGame}
+                      </button>
+                    </article>
+                  ))}
+                </div>
               </div>
             ) : null}
 

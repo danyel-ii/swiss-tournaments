@@ -24,6 +24,24 @@ interface GameResponse {
   game: unknown
 }
 
+async function createGameRequest(
+  tableId: string,
+  candidate: OngoingPairingCandidate,
+): Promise<void> {
+  await apiRequest<GameResponse>(
+    `/api/ongoing-tables?tableId=${encodeURIComponent(tableId)}&action=game`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        whitePlayerId: candidate.whitePlayerId,
+        blackPlayerId: candidate.blackPlayerId,
+        pairingWeight: candidate.weight,
+        pairingSnapshot: candidate,
+      }),
+    },
+  )
+}
+
 export function useOngoingTables(enabled: boolean) {
   const [tables, setTables] = useState<OngoingTableSummary[]>([])
   const [activeTable, setActiveTable] = useState<OngoingTableDetail | null>(null)
@@ -134,18 +152,20 @@ export function useOngoingTables(enabled: boolean) {
     candidate: OngoingPairingCandidate,
   ) =>
     mutate(async () => {
-      await apiRequest<GameResponse>(
-        `/api/ongoing-tables?tableId=${encodeURIComponent(tableId)}&action=game`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            whitePlayerId: candidate.whitePlayerId,
-            blackPlayerId: candidate.blackPlayerId,
-            pairingWeight: candidate.weight,
-            pairingSnapshot: candidate,
-          }),
-        },
-      )
+      await createGameRequest(tableId, candidate)
+      setPairingCandidates([])
+      return loadTable(tableId)
+    })
+
+  const createGames = async (
+    tableId: string,
+    candidates: OngoingPairingCandidate[],
+  ) =>
+    mutate(async () => {
+      for (const candidate of candidates) {
+        await createGameRequest(tableId, candidate)
+      }
+
       setPairingCandidates([])
       return loadTable(tableId)
     })
@@ -208,6 +228,7 @@ export function useOngoingTables(enabled: boolean) {
     updateTablePlayers,
     suggestPairing,
     createGame,
+    createGames,
     setGameResult,
     archiveTable,
     deleteTable,
