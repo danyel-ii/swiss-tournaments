@@ -378,7 +378,7 @@ Ongoing tables live beside tournaments rather than inside them:
 
 The `Tables` UI uses `useOngoingTables()` and `api/ongoing-tables.ts` to create tables, suggest pairings, create pending games, and enter results. Table standings are derived from `ongoing_table_games`; global Magie-Punkte is still derived only through `rated_games` replay.
 
-Deleting an ongoing table removes its ongoing-table rating sources and recalculates ratings. Archiving a table preserves games and ratings.
+Deleting an ongoing table removes the table UI/history rows but preserves its canonical rated game sources, so Magie-Punkte remain part of player history. Archiving a table preserves both games and ratings.
 
 ## F. Pairing and standings flow
 

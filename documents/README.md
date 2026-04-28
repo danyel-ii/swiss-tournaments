@@ -223,6 +223,7 @@ Table result behavior:
 - `1-0`, `0-1`, and `0.5-0.5` update both table standings and Magie-Punkte
 - `0-0` records a completed table game worth zero table points and does not update Magie-Punkte
 - pending games are included as pairing history so repeated pending suggestions are discouraged
+- deleting a table removes the table from the UI, but rated Magie-Punkte from completed table games remain in player history
 
 ## Statistics
 

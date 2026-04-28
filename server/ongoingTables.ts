@@ -613,12 +613,8 @@ export async function deleteOngoingTable(
     returning table_id
   `) as Array<{ table_id: string }>
 
-  await sql`
-    delete from rated_games
-    where username = ${username}
-      and source_type = 'ongoing_table'
-      and source_id = ${tableId}
-  `
+  // Preserve canonical rated game sources so Magie-Punkte remain historical
+  // even when the table UI/history is deleted.
   await recalculateUserRatings(username)
 
   return rows.length > 0
