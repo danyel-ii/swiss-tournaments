@@ -12,7 +12,7 @@ The core algorithmic areas are:
 - color assignment heuristics
 - bye selection
 - standings and tie-break computation
-- internal Elo rating replay
+- Magie-Punkte replay
 - ongoing table probabilistic pairing
 - tournament progression rules that affect pairing inputs
 
@@ -54,7 +54,7 @@ Other important non-configurable algorithms in the system:
 - bye assignment
 - color balancing and streak avoidance
 - tournament rewind logic for corrected historic results
-- Elo expected score and K-factor updates
+- Magie-Punkte expected score and K-factor updates
 - ongoing table pair weighting and weighted random selection
 
 ## End-to-End Pairing Pipeline
@@ -630,7 +630,7 @@ The test suite in `src/core/ranking.test.ts` validates several critical guarante
 
 This matters because it tells us which algorithmic properties are intentional and already protected by tests.
 
-## 13. Internal Elo Rating Algorithm
+## 13. Magie-Punkte Algorithm
 
 Implemented in:
 
@@ -639,7 +639,7 @@ Implemented in:
 
 ### Pure rating formula
 
-The app uses a standard Elo-style expected score:
+The app uses the standard expected-score curve behind Magie-Punkte:
 
 ```ts
 expectedWhite = 1 / (1 + Math.pow(10, (blackRating - whiteRating) / 400))

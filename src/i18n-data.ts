@@ -201,6 +201,7 @@ export type TranslationSet = {
     selectPlayers: string
     internalElo: string
     rating: string
+    ratingGames: string
     provisional: string
     suggestPairing: string
     suggestBatch: string
@@ -601,8 +602,9 @@ export const translations: Record<Language, TranslationSet> = {
       createTable: 'Create table',
       tableName: 'Table name',
       selectPlayers: 'Select players',
-      internalElo: 'Internal Elo',
-      rating: 'Rating',
+      internalElo: 'Magie-Punkte',
+      rating: 'Magie-Punkte',
+      ratingGames: 'Rated games',
       provisional: 'Provisional',
       suggestPairing: 'Suggest pairing',
       suggestBatch: 'Suggest batch',
@@ -935,8 +937,9 @@ export const translations: Record<Language, TranslationSet> = {
       createTable: 'Tabelle erstellen',
       tableName: 'Tabellenname',
       selectPlayers: 'Spieler auswaehlen',
-      internalElo: 'Interne Elo',
-      rating: 'Rating',
+      internalElo: 'Magie-Punkte',
+      rating: 'Magie-Punkte',
+      ratingGames: 'Gewertete Partien',
       provisional: 'Vorlaeufig',
       suggestPairing: 'Paarung vorschlagen',
       suggestBatch: 'Batch vorschlagen',

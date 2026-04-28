@@ -302,7 +302,7 @@ Consequences:
 - analytics always derive from persisted workspace state
 - statistics are eventually consistent with the latest successful save
 - the frontend does not need a second write path to maintain analytics tables
-- re-saving the same tournament state cannot double-count Elo changes
+- re-saving the same tournament state cannot double-count Magie-Punkte changes
 - editing old results, rewinding rounds, and deleting tournaments remove obsolete rating sources before replay
 
 ### Library semantics
@@ -315,7 +315,7 @@ Key behavior:
 - a tournament player may link to an existing `libraryPlayerId`
 - otherwise the server can create/reuse a library entry by normalized name
 - deletion from the library is soft-hide behavior, not history erasure
-- each library player can have an internal Elo rating in `player_ratings`
+- each library player can have Magie-Punkte in `player_ratings`
 
 That is a smart choice because it preserves historical linkage while letting organizers clean up active lists.
 
@@ -376,7 +376,7 @@ Ongoing tables live beside tournaments rather than inside them:
 - `ongoing_table_players`
 - `ongoing_table_games`
 
-The `Tables` UI uses `useOngoingTables()` and `api/ongoing-tables.ts` to create tables, suggest pairings, create pending games, and enter results. Table standings are derived from `ongoing_table_games`; global Elo is still derived only through `rated_games` replay.
+The `Tables` UI uses `useOngoingTables()` and `api/ongoing-tables.ts` to create tables, suggest pairings, create pending games, and enter results. Table standings are derived from `ongoing_table_games`; global Magie-Punkte is still derived only through `rated_games` replay.
 
 Deleting an ongoing table removes its ongoing-table rating sources and recalculates ratings. Archiving a table preserves games and ratings.
 
@@ -450,7 +450,7 @@ Ongoing table pairings:
 
 - generate every possible active-player pair
 - assign every pair a non-zero weight
-- favor closer Elo matches
+- favor closer Magie-Punkte matches
 - favor pairs with fewer prior table games against each other
 - discourage recent repeats without forbidding them
 - choose white/black after pair weighting to improve color balance
@@ -480,7 +480,7 @@ The schema in `db/schema.sql` is small but purposeful.
 - `tournament_match_entries`
   - match snapshots inside each tournament
 - `player_ratings`
-  - current replayed internal Elo per library player
+  - current replayed Magie-Punkte per library player
 - `rated_games`
   - canonical rated game sources from tournaments and ongoing tables
 - `rating_events`

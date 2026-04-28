@@ -69,7 +69,7 @@ export function StatisticsView({
     ? [
         [t.statistics.score, formatScore(selectedSummary.totalScore)],
         [t.tables.internalElo, `${selectedSummary.internalRating}${selectedSummary.ratingProvisional ? ` (${t.tables.provisional})` : ''}`],
-        [t.tables.rating, String(selectedSummary.ratingGames)],
+        [t.tables.ratingGames, String(selectedSummary.ratingGames)],
         [t.statistics.scorePercentage, formatPercent(selectedSummary.scorePercentage)],
         [t.statistics.gamesPlayed, String(selectedSummary.gamesPlayed)],
         [t.statistics.tournamentsPlayed, String(selectedSummary.tournamentsPlayed)],

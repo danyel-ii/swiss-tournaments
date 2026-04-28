@@ -11,7 +11,7 @@ This app is used to run Swiss-system chess tournaments with:
 - live result entry
 - standings and tie-breaks
 - reusable player library
-- shared internal Elo ratings for library players
+- shared Magie-Punkte for library players
 - ongoing rated tables for open-ended play
 - cross-tournament player statistics
 - markdown report download
@@ -187,7 +187,7 @@ Deleting a player from the library:
 - does not erase past tournament history
 - does not erase statistics by itself
 
-Each library player also has an internal Elo rating:
+Each library player also has Magie-Punkte:
 
 - new players start at `1200`
 - players are provisional for their first 20 rated games
@@ -211,7 +211,7 @@ Use it to:
 
 Pairing suggestions are weighted by:
 
-- internal Elo similarity
+- Magie-Punkte similarity
 - fewer previous games between the same two table players
 - avoidance of very recent repeats
 - activity balancing between players with different table game counts
@@ -220,8 +220,8 @@ Every possible active pairing keeps a non-zero chance. This means the suggestion
 
 Table result behavior:
 
-- `1-0`, `0-1`, and `0.5-0.5` update both table standings and internal Elo
-- `0-0` records a completed table game worth zero table points and does not update internal Elo
+- `1-0`, `0-1`, and `0.5-0.5` update both table standings and Magie-Punkte
+- `0-0` records a completed table game worth zero table points and does not update Magie-Punkte
 - pending games are included as pairing history so repeated pending suggestions are discouraged
 
 ## Statistics
@@ -230,7 +230,7 @@ The `Statistics` tab shows cross-tournament player information derived from the 
 
 Available statistics include:
 
-- internal Elo rating and rating game count
+- Magie-Punkte and rated game count
 - tournaments played
 - games played
 - total score
