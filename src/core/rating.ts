@@ -1,5 +1,5 @@
-import type { ManualMatchResult } from '../types/tournament'
-import type { RatedResult } from '../types/rating'
+import type { ManualMatchResult } from '../types/tournament.js'
+import type { RatedResult } from '../types/rating.js'
 
 export const DEFAULT_INTERNAL_RATING = 1200
 export const PROVISIONAL_GAME_LIMIT = 20

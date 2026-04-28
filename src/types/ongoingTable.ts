@@ -1,4 +1,4 @@
-import type { ManualMatchResult } from './tournament'
+import type { ManualMatchResult } from './tournament.js'
 
 export type OngoingTableStatus = 'active' | 'archived'
 
