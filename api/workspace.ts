@@ -2,7 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireUsername } from '../server/auth.js'
 import { sql } from '../server/db.js'
 import { withApiErrorHandling } from '../server/errors.js'
-import { ensureRatingSchema } from '../server/ratings.js'
 import {
   sendJson,
   sendMethodNotAllowed,
@@ -151,16 +150,9 @@ async function handler(
       typeof request.query.tournamentId === 'string' ? request.query.tournamentId : null
 
     if (scope === 'all') {
-      await ensureRatingSchema()
       await sql`delete from ongoing_table_games where username = ${username}`
       await sql`delete from ongoing_table_players where username = ${username}`
       await sql`delete from ongoing_tables where username = ${username}`
-      await sql`delete from rating_events where username = ${username}`
-      await sql`delete from rated_games where username = ${username}`
-      await sql`delete from player_ratings where username = ${username}`
-      await sql`delete from tournament_match_entries where username = ${username}`
-      await sql`delete from tournament_player_entries where username = ${username}`
-      await sql`delete from tournament_records where username = ${username}`
       await sql`delete from workspaces where username = ${username}`
 
       sendJson(response, 200, createDefaultTournamentCollection())

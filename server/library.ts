@@ -22,6 +22,7 @@ import type {
 import type { Match, Player, TournamentStatus } from '../src/types/tournament.js'
 import type { TournamentCollection } from '../src/types/workspace.js'
 import { DEFAULT_INTERNAL_RATING } from '../src/core/rating.js'
+import type { RatedResult } from '../src/types/rating.js'
 import {
   ensureRatingSchema,
   recalculateUserRatings,
@@ -68,6 +69,14 @@ interface TournamentRecordRow {
   current_round: number
   created_at: string
   updated_at: string
+}
+
+interface OngoingRatedGameRow {
+  source_game_id: string
+  white_library_player_id: string
+  black_library_player_id: string
+  result: RatedResult
+  played_at: string
 }
 
 interface TournamentSnapshot {
@@ -850,16 +859,70 @@ function finalizeSummary(accumulator: SummaryAccumulator): PlayerStatsSummary {
   return summary
 }
 
+function getOngoingRatedPoints(result: RatedResult, color: 'W' | 'B'): number {
+  if (result === '0.5-0.5') {
+    return 0.5
+  }
+
+  if (result === '1-0') {
+    return color === 'W' ? 1 : 0
+  }
+
+  return color === 'B' ? 1 : 0
+}
+
+function applyOngoingRatedGameToSummary(
+  accumulator: SummaryAccumulator,
+  playerId: string,
+  game: OngoingRatedGameRow,
+): void {
+  const color = game.white_library_player_id === playerId ? 'W' : 'B'
+  const points = getOngoingRatedPoints(game.result, color)
+
+  accumulator.summary.gamesPlayed += 1
+  accumulator.summary.totalScore += points
+  accumulator.summary.whiteGames += color === 'W' ? 1 : 0
+  accumulator.summary.blackGames += color === 'B' ? 1 : 0
+  accumulator.summary.lastPlayedAt =
+    !accumulator.summary.lastPlayedAt ||
+    new Date(game.played_at).getTime() > new Date(accumulator.summary.lastPlayedAt).getTime()
+      ? game.played_at
+      : accumulator.summary.lastPlayedAt
+
+  if (game.result === '0.5-0.5') {
+    accumulator.summary.draws += 1
+  } else if (points === 1) {
+    accumulator.summary.wins += 1
+  } else {
+    accumulator.summary.losses += 1
+  }
+
+  if (color === 'W') {
+    accumulator.whiteCompletedGames += 1
+
+    if (points === 1) {
+      accumulator.whiteWins += 1
+    }
+  } else {
+    accumulator.blackCompletedGames += 1
+
+    if (points === 1) {
+      accumulator.blackWins += 1
+    }
+  }
+}
+
 async function loadStatsProjection(username: AllowedUsername): Promise<{
   libraryRows: LibraryRow[]
   tournamentRows: TournamentRecordRow[]
   playerRows: TournamentPlayerProjectionRow[]
   matchRows: MatchProjectionRow[]
+  ongoingRatedGameRows: OngoingRatedGameRow[]
 }> {
   await ensureLibrarySchema()
   await ensureRatingSchema()
 
-  const [libraryRows, tournamentRows, playerRows, matchRows] = await Promise.all([
+  const [libraryRows, tournamentRows, playerRows, matchRows, ongoingRatedGameRows] = await Promise.all([
     sql`
       select
         pl.id,
@@ -908,6 +971,18 @@ async function loadStatsProjection(username: AllowedUsername): Promise<{
       from tournament_match_entries
       where username = ${username}
     `,
+    sql`
+      select
+        source_game_id,
+        white_library_player_id,
+        black_library_player_id,
+        result,
+        played_at
+      from rated_games
+      where username = ${username}
+        and source_type = 'ongoing_table'
+      order by played_at asc, source_id asc, source_game_id asc
+    `,
   ])
 
   return {
@@ -915,6 +990,7 @@ async function loadStatsProjection(username: AllowedUsername): Promise<{
     tournamentRows: tournamentRows as TournamentRecordRow[],
     playerRows: playerRows as TournamentPlayerProjectionRow[],
     matchRows: matchRows as MatchProjectionRow[],
+    ongoingRatedGameRows: ongoingRatedGameRows as OngoingRatedGameRow[],
   }
 }
 
@@ -922,7 +998,8 @@ async function buildStatsData(username: AllowedUsername): Promise<{
   summaries: PlayerStatsSummary[]
   details: Map<string, PlayerStatsDetail>
 }> {
-  const { libraryRows, tournamentRows, playerRows, matchRows } = await loadStatsProjection(username)
+  const { libraryRows, tournamentRows, playerRows, matchRows, ongoingRatedGameRows } =
+    await loadStatsProjection(username)
   const snapshots = buildTournamentSnapshots(tournamentRows, playerRows, matchRows)
   const summaryAccumulators = new Map<string, SummaryAccumulator>(
     libraryRows.map((row) => [row.id, createSummaryAccumulator(row)]),
@@ -934,10 +1011,6 @@ async function buildStatsData(username: AllowedUsername): Promise<{
       .map((snapshot) => buildPlayerTournamentStat(row.id, snapshot))
       .filter((entry): entry is PlayerTournamentStat => entry !== null)
       .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
-
-    if (tournaments.length === 0) {
-      continue
-    }
 
     const accumulator = summaryAccumulators.get(row.id)
 
@@ -997,6 +1070,21 @@ async function buildStatsData(username: AllowedUsername): Promise<{
           }
         }
       }
+    }
+
+    for (const ongoingGame of ongoingRatedGameRows) {
+      if (
+        ongoingGame.white_library_player_id !== row.id &&
+        ongoingGame.black_library_player_id !== row.id
+      ) {
+        continue
+      }
+
+      applyOngoingRatedGameToSummary(accumulator, row.id, ongoingGame)
+    }
+
+    if (tournaments.length === 0 && accumulator.summary.gamesPlayed === 0) {
+      continue
     }
 
     const headToHeadMap = new Map<string, PlayerHeadToHeadStat>()

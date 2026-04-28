@@ -232,6 +232,7 @@ The `Statistics` tab shows cross-tournament player information derived from the 
 Available statistics include:
 
 - Magie-Punkte and rated game count
+- rated ongoing-table games, even after the source table is deleted
 - tournaments played
 - games played
 - total score

@@ -336,6 +336,7 @@ That keeps editing responsibilities separated:
 
 - workspace routes mutate tournament state
 - stats/library routes expose curated historical views
+- ongoing-table rated games are included in player summaries from `rated_games`, so they continue to count after a table is deleted
 
 ## E. Rating and ongoing table flow
 
